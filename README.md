@@ -11,8 +11,6 @@ development/
 ├─ src/               Quellteile (nie index.html bearbeiten)
 ├─ build/             ERZEUGT von src/build.sh: das ist die App
 ├─ tests/             Node-/Playwright-Skripte
-├─ sicherungen/       Kopien der Datendatei vor Umbauten (nicht in Git)
-└─ finanzdaten.json   Arbeitskopie der Daten (nicht in Git, nicht verschieben)
 ```
 
 ## Befehle
@@ -25,7 +23,7 @@ Tests brauchen Playwright und laufen im Cloud-Container, siehe `docs/01 Architek
 
 ## Neuer Chat
 
-Ordner im Claude-Desktop verbinden («+» neben dem Nachrichtenfeld → Ordner hinzufügen), dann nur die Aufgabe nennen, z. B. «Baue S3 nach Roadmap.» Claude liest `docs/00` und `docs/05` selbst.
+Ordner im Claude-Desktop verbinden («+» neben dem Nachrichtenfeld → Ordner hinzufügen), dann nur den Build nennen: **«Baue 1.2.0 nach Roadmap.»** Claude liest `docs/00 Projektanweisung.md` und `docs/05 Roadmap.md` selbst und nimmt die Punkte, die dort unter diesem Build stehen. Ein Build pro Chat.
 
 ## Nie öffentlich
 

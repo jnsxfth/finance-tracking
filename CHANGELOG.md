@@ -2,6 +2,10 @@
 
 Neueste oben. Pro Eintrag: Anlass, Änderungen, Tests, was der Nutzer tun muss.
 
+## Offen: 1.2.0 «Bedienung»
+
+Vorbereitet, nicht gebaut: A1 Rechnerzeile auf dem Handy, A2 `formOeffnen()` für alle Formulare, A3 Überträge in «Wiederk.» netto pro Konto, A4 Klicksperre beim Speichern und kompaktes JSON, G2 Rückgängig nach Löschen. Einzelheiten und Abnahmekriterien in `docs/05 Roadmap.md`.
+
 ## 1.1.2 · 06.11.2026
 
 **Anlass.** Nach 1.1.1 liegt die Historie in der Datei. Jetzt verlässt sie den Code, zusammen mit allem anderen Persönlichen — die App soll auch für andere brauchbar sein.

@@ -47,6 +47,12 @@ Lies `docs/05 Roadmap.md` (Stand und nächster Schritt) und `docs/01 Architektur
 4. Veraltetes löschen statt ergänzen. Keine Code-Kopien im Projekt. Keine Zwischendateien im Ordner.
 5. Antwort an mich: was fertig ist, was ich tun oder testen muss, nächster Schritt. In dieser Reihenfolge, kurz.
 
+## So fange ich einen Chat an
+
+Ich nenne nur den Build, etwa **«Baue 1.2.0 nach Roadmap.»** Du liest dann `docs/05 Roadmap.md`, nimmst die Punkte, die dort unter diesem Build stehen, und arbeitest sie ab — ohne Rückfrage, was gemeint ist. Offene Fragen aus der Roadmap stellst du nur, wenn sie diesen Build betreffen.
+
+Pro Chat ein Build. Danach neuer Chat: die Dokumente tragen den Stand, der Gesprächsverlauf nicht.
+
 ## Auslieferung
 
 Fertig ist, was in `build/` liegt (`index.html`, `sw.js`, Manifest, Icons). Kein ZIP nötig. Wohin damit: `docs/04 Deployment.md`.

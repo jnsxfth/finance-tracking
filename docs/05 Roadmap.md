@@ -18,11 +18,26 @@ Gebaut wird nur, was ein prüfbares «Fertig heisst» hat. Die Reihenfolge ist e
 
 ## A — Fehler, klein
 
-**A1 Rechner auf dem Handy nicht benutzbar.** `#txBetrag` ist `<input type="text" inputmode="decimal">`: Android zeigt Ziffernfeld mit Punkt und Minus, aber ohne `+ * / ( )`. `rechne()` funktioniert, die Zeichen sind nicht eintippbar. Betrifft auch `#serBetrag`, `#planLohn`. **Nicht** auf `inputmode="text"` wechseln. Vorschlag: schmale Knopfzeile über dem Feld (`+ − × ÷ ( ) ⌫`), fügt an der Cursorposition ein, Fokus bleibt im Feld, nur sichtbar bei Fokus. *Fertig heisst:* `30+10*2` ist auf dem Handy ohne Hardwaretastatur eintippbar, Ergebnis im Hinweis, Tastatur bleibt offen.
+**A1 Rechner auf dem Handy nicht benutzbar.** `#txBetrag` ist `<input type="text" inputmode="decimal">`: Android zeigt Ziffernfeld mit Punkt und Minus, aber ohne `+ * / ( )`. `rechne()` funktioniert, die Zeichen sind nicht eintippbar. Betrifft auch `#serBetrag`, `#planLohn`. **Nicht** auf `inputmode="text"` wechseln. Vorschlag: schmale Knopfzeile über dem Feld (`+ − × ÷ ( ) ⌫`), fügt an der Cursorposition ein, Fokus bleibt im Feld, nur sichtbar bei Fokus. Stolperstein: Ein Tipp auf einen Knopf nimmt dem Feld sonst den Fokus und schliesst die Tastatur. Darum `mousedown`/`touchstart` mit `preventDefault()` abfangen und den Wert über `setRangeText()` einfügen, statt den Fokus neu zu setzen.
+
+*Fertig heisst:* `30+10*2` ist auf dem Handy ohne Hardwaretastatur eintippbar, Ergebnis im Hinweis, Tastatur bleibt offen.
 
 **A2 Bearbeiten bleibt unsichtbar.** `editKonto()` füllt ein Formular in einem zugeklappten `<details>` und scrollt nach oben. Einmal lösen für alle: `formOeffnen(elId, titel)` klappt das `details` auf, `scrollIntoView({block:'center'})`, Überschrift «Bearbeiten: \<Name\>», kurzes Aufleuchten; Abbrechen setzt zurück. Einsetzen in `editKonto`, `editTx`, `editSerie`, Topf, Ziel, Wert; prüfen, ob `#wertCard` und der Kategorien-Dialog dasselbe Problem haben. *Fertig heisst:* Jeder Bearbeiten-Knopf führt sichtbar zum gefüllten Formular, geprüft auf 360 px.
 
 **A3 Wiederk.: Überträge aussagelos.** `renderAbos` addiert alle Überträge (`fixUeb`) ohne Richtung; Hin- und Rückbuchungen zwischen eigenen Konten heben sich auf oder verfälschen. Vorschlag: Überträge **pro Zielkonto netto** (Zufluss minus Abfluss pro Monat), Topf-Daueraufträge als Unterzeile; Fixlast bleibt nur Ausgaben. *Fertig heisst:* Dauerauftrag Lohnkonto → Sparkonto 1000 und Rückbuchung 300 zeigen «Sparkonto +700 netto», nicht 1300.
+
+**A4 Speichern dauert, Doppelklicks erzeugen Doppelbuchungen.** Vom Nutzer am 06.11. gemeldet. Ein `saveData()` auf dem Handy macht der Reihe nach: die ganze Datei lesen und voll parsen (Konfliktprüfung), `JSON.stringify(state, null, 2)` (684 KB; kompakt 591 KB, also 16 % mehr als nötig), diese 684 KB **synchron** in localStorage schreiben, die Datei nach OneDrive schreiben, dann in `bestaetigeSchreiben()` bis zu dreimal zurücklesen mit 250 und 500 ms Pause und jedes Mal voll parsen. Danach `renderAll()` über alle sechs Bildschirme mit 2376 Buchungen. Währenddessen bleiben alle Knöpfe scharf.
+
+Gefährlich ist das beim Verbuchen eines fälligen Dauerauftrags: `verbuchen()` legt die Buchung an und wartet dann auf `saveData()`; ein zweiter Tipp legt sie erneut an, weil die Handler die Liste `f` festhalten. Beim Erfassen-Formular ist die Lage milder, weil `resetForm()` vor dem Speichern läuft — ein zweiter Tipp bringt dort eine Fehlermeldung statt einer Dublette.
+
+*Vorschlag, in dieser Reihenfolge:*
+1. **Klicksperre** (klein, behebt die Dublette): ein Helfer `async function einmal(el, fn)` schaltet den Knopf aus, zeigt «Speichere …», führt aus, schaltet wieder ein. Einsetzen bei allen Knöpfen, die speichern — Verbuchen, Alle verbuchen, Überspringen, Buchung speichern, Löschen im Dialog, Serie, Topf, Ziel, Wert, Kategorie, Gruppe, Art.
+2. **Kompaktes JSON**: `JSON.stringify(state)` ohne Einrückung. Die Datei ist nicht zum Lesen von Hand gedacht, `parseTolerant()` ist davon unabhängig. 16 % weniger schreiben und zurücklesen.
+3. **Konfliktprüfung ohne Vollparse**: für `meta.rev` genügt ein `match(/"rev"\s*:\s*(\d+)/)` auf dem Text, statt 684 KB zu parsen. Dasselbe in `bestaetigeSchreiben()`.
+4. **localStorage-Kopie entkoppeln**: nicht vor jedem Dateischreiben synchron 684 KB, sondern danach und nur, wenn das Schreiben scheitert oder beim Verlassen der Seite (`visibilitychange`).
+5. **`renderAll()` eingrenzen**: nur den sichtbaren Bildschirm rendern, die übrigen beim Wechsel. Erst nach der Messung aus I2, weil hier Bildschirme veralten können.
+
+*Fertig heisst:* Zweimal schnell auf «Verbuchen» tippen erzeugt genau **eine** Buchung (Playwright-Test mit künstlich verzögertem Handle), während des Speicherns ist sichtbar, dass etwas läuft, und die Zeit von Tippen bis Rückmeldung ist auf dem Handy gemessen und in `01 Architektur.md` festgehalten. Punkt 1 und 2 gehören zu 1.2.0, Punkt 3 bis 5 zu 1.2.1.
 
 ---
 
@@ -95,10 +110,13 @@ Einziger Finanzguru-Punkt ohne Bankanbindung, der hier fehlt: pro Dauerauftrag �
 
 ## Reihenfolge
 
-1. **Build 1.2.0: A1 + A2 + A3 + G2 + G3 + G0.** ← nächster Schritt
+1. **Build 1.2.0 «Bedienung»: A1 + A2 + A3 + A4 (Punkt 1 und 2) + G2.** ← nächster Schritt
+   Nur Oberfläche und Fehlklicks. Fasst die Lese- und Schreiblogik nicht an, darum ist eine Regression eindeutig zuzuordnen.
+2. **Build 1.2.1 «Datei»: G0 + G3 + A4 (Punkt 3 bis 5) + I2-Messung.**
+   Alles, was `persist.js` tief anfasst, in einem Zug. G1 folgt in der Bauform, die G0 ergibt.
 3. **I1**, dann **G1**, **B**, **C1 + C2**, **D**.
 4. **F**; **H1** nach dem Einzug; **H2** im Januar; Rest von **E**.
-5. I2, I3 nebenher. H3 richtet der Nutzer 2027 selbst ein.
+5. I3 nebenher. H3 richtet der Nutzer 2027 selbst ein.
 
 ## Offene Fragen
 
