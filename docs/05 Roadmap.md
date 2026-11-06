@@ -13,8 +13,8 @@ Gebaut wird nur, was ein prüfbares «Fertig heisst» hat. Die Reihenfolge ist e
 - **S1 ✅** Pages aus, altes Repo archiviert (06.11.).
 - **S2 ✅ 1.1.1** Historie nach `state.hist`, beim Laden sofort gesichert; Service Worker cacht keine 404.
 - **S3 ✅ 1.1.2** `HIST_*` und `APP_MAP` gelöscht, Startwerte neutral und ohne Beträge, Institutionsnamen und persönliche Zielkategorien aus den Import-Vorschlägen und Platzhaltern entfernt. Geprüft per `t23-neue-person` und Textsuche über `build/index.html`.
-- **S4 ← nächster Schritt, beim Nutzer.** Neues privates Repo, Veröffentlichung nur von `build/` per Actions-Workflow, gleiche Adresse. Ordner ist Git-Repo mit erstem Commit, Workflow liegt bereit; Schritte in `04 Deployment.md`. *Fertig heisst:* Die App lädt unter der alten Adresse und zeigt unter Mehr → Daten die erwartete Version; das Handy-PWA aktualisiert sich wieder.
-- **S5** Altes Archiv-Repo löschen (sein Verlauf enthält die Zahlen), nach S4.
+- **S4 ← nächster Schritt, beim Nutzer.** Neues privates Repo `finance-tracking`, Veröffentlichung nur von `build/` per Actions-Workflow. Ordner ist Git-Repo mit drei Commits, Workflow und `.gitattributes` liegen bereit, nichts ist von Hand zu kopieren; Schritte in `04 Deployment.md`. *Fertig heisst:* Die App lädt unter der alten Adresse und zeigt unter Mehr → Daten die erwartete Version; das Handy-PWA aktualisiert sich wieder.
+- **S5 ✅** Altes Repo gelöscht (06.11.), damit ist die Historie auch aus dem Verlauf weg.
 
 ## A — Fehler, klein
 
@@ -95,7 +95,7 @@ Einziger Finanzguru-Punkt ohne Bankanbindung, der hier fehlt: pro Dauerauftrag �
 
 ## Reihenfolge
 
-1. **S4 → S5**: Hosting wieder aufsetzen, dann das alte Repo löschen.
+1. **S4**: Hosting wieder aufsetzen (Repo anlegen und pushen, Pages auf Actions).
 2. **Build 1.2.0: A1 + A2 + A3 + G2 + G3 + G0.**
 3. **I1**, dann **G1**, **B**, **C1 + C2**, **D**.
 4. **F**; **H1** nach dem Einzug; **H2** im Januar; Rest von **E**.

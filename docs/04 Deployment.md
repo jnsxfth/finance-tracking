@@ -10,18 +10,31 @@ Der Ordner ist ein Git-Repo mit einem Commit, aber ohne Gegenstelle. `finanzdate
 
 ## Einmalig: neues Repo aufsetzen
 
-Die Adresse muss `…github.io/finance-tracking/` bleiben, sonst findet das installierte Handy-PWA seine App nicht wieder. Der Name ist also erst freizuräumen.
+Das alte Repo ist am 06.11.2026 gelöscht worden (S5 damit erledigt, die Historie ist aus dem Verlauf verschwunden). Der Name ist frei. **Nichts von Hand kopieren:** der Ordner ist ein Git-Repo, `git push` überträgt genau die richtigen Dateien.
 
-1. Altes Repo umbenennen (nicht löschen, bis die neue App läuft): Settings → ganz unten *Unarchive* → oben *Repository name* → `finance-tracking-archiv-2026` → Rename → wieder *Archive*.
-2. Neues **privates** Repo `finance-tracking` anlegen, ohne README, ohne `.gitignore`.
-3. In `development/` (Linux-Shell oder Git Bash):
+Die Adresse muss `…github.io/finance-tracking/` bleiben, sonst findet das installierte Handy-PWA seine App nicht wieder. Das Repo muss also wieder `finance-tracking` heissen.
+
+**Weg A, GitHub Desktop** (legt das Repo gleich mit an):
+
+1. *File → Add local repository* → `C:\Users\Jonas\OneDrive\Finance-Tracking\development`. Es erscheinen drei Commits.
+2. *Publish repository* → Name `finance-tracking`, **«Keep this code private» angekreuzt** → *Publish*.
+
+**Weg B, Git auf der Kommandozeile:**
+
+1. Auf GitHub ein **privates** Repo `finance-tracking` anlegen — leer, ohne README und ohne `.gitignore`.
+2. Im Ordner `development`:
    ```
    git remote add origin https://github.com/jnsxfth/finance-tracking.git
    git push -u origin main
    ```
-4. Im neuen Repo: Settings → Pages → **Source: GitHub Actions**. Der Workflow `.github/workflows/pages.yml` läuft bei jedem Push auf `main`: er bricht ab, falls eine Datendatei im Repo liegt, baut mit `src/build.sh` und veröffentlicht nur `build/`.
-5. Unter *Actions* den Lauf abwarten, dann `https://jnsxfth.github.io/finance-tracking/` öffnen und prüfen, ob unter Mehr → Daten die erwartete Version steht.
-6. Läuft die App: altes Archiv-Repo löschen (Settings → ganz unten → Delete this repository). Danach ist die Historie auch aus dem Verlauf verschwunden.
+
+Existiert das Repo schon und ist nicht leer, lehnt der Push ab. Dann entweder das leere Repo löschen und neu anlegen, oder `git push -u --force origin main` — der lokale Stand ist der gültige.
+
+**Danach in beiden Fällen:**
+
+3. Settings → Pages → **Source: GitHub Actions**. Der Workflow `.github/workflows/pages.yml` läuft bei jedem Push auf `main`: er bricht ab, falls eine Datendatei im Repo liegt, baut mit `src/build.sh` und veröffentlicht nur `build/`.
+4. Unter *Actions* den Lauf abwarten (grüner Haken), dann `https://jnsxfth.github.io/finance-tracking/` öffnen und unter Mehr → Daten die Version prüfen.
+5. Auf dem Handy die App öffnen. Zeigt sie noch die alte Fassung: Mehr → Daten → *Nach Updates suchen*, dann *Jetzt aktualisieren*.
 
 **Pro genügt.** Pages aus privaten Repos und Actions sind enthalten. Die veröffentlichte Seite ist trotzdem öffentlich erreichbar — Zugriffsschutz gibt es nur mit Enterprise Cloud. Darum Regel 8: in `build/` nie persönliche Daten.
 

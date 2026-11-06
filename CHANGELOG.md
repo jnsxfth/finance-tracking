@@ -16,7 +16,7 @@ Neueste oben. Pro Eintrag: Anlass, Änderungen, Tests, was der Nutzer tun muss.
 
 **Befund.** Alle sieben Historienjahre haben auch echte Buchungen, weil der Import sie mitgebracht hat. `hatLive()` gewinnt, also wird `hist.aus`/`hist.ein` bei dieser Datei nie gelesen — sichtbar ist nur `hist.verm` im Vermögensverlauf. Die Historie war für die Jahresansicht also schon vorher ohne Wirkung.
 
-**Du:** Repo neu aufsetzen nach `docs/04 Deployment.md`, dann App unter der alten Adresse öffnen und `1.1.2 · 06.11.2026` prüfen.
+**Du:** Privates Repo `finance-tracking` anlegen und den Ordner pushen (nichts von Hand kopieren), Pages auf *GitHub Actions* stellen — Schritte in `docs/04 Deployment.md`. Danach App unter der alten Adresse öffnen und `1.1.2 · 06.11.2026` prüfen. Das alte Repo ist gelöscht, der Name ist frei.
 
 ## 1.1.1 · 06.11.2026
 
