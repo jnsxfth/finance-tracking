@@ -13,7 +13,7 @@ Gebaut wird nur, was ein prüfbares «Fertig heisst» hat. Die Reihenfolge ist e
 - **S1 ✅** Pages aus, altes Repo archiviert (06.11.).
 - **S2 ✅ 1.1.1** Historie nach `state.hist`, beim Laden sofort gesichert; Service Worker cacht keine 404.
 - **S3 ✅ 1.1.2** `HIST_*` und `APP_MAP` gelöscht, Startwerte neutral und ohne Beträge, Institutionsnamen und persönliche Zielkategorien aus den Import-Vorschlägen und Platzhaltern entfernt. Geprüft per `t23-neue-person` und Textsuche über `build/index.html`.
-- **S4 ← nächster Schritt, beim Nutzer.** Neues privates Repo `finance-tracking`, Veröffentlichung nur von `build/` per Actions-Workflow. Ordner ist Git-Repo mit drei Commits, Workflow und `.gitattributes` liegen bereit, nichts ist von Hand zu kopieren; Schritte in `04 Deployment.md`. *Fertig heisst:* Die App lädt unter der alten Adresse und zeigt unter Mehr → Daten die erwartete Version; das Handy-PWA aktualisiert sich wieder.
+- **S4 ✅** Privates Repo `finance-tracking` neu, Veröffentlichung nur von `build/`. Der offizielle Actions-Weg bleibt in `deployment_queued` hängen (Fehler bei GitHub), darum über den Zweig `gh-pages`; Einzelheiten in `04 Deployment.md`.
 - **S5 ✅** Altes Repo gelöscht (06.11.), damit ist die Historie auch aus dem Verlauf weg.
 
 ## A — Fehler, klein
@@ -95,8 +95,7 @@ Einziger Finanzguru-Punkt ohne Bankanbindung, der hier fehlt: pro Dauerauftrag �
 
 ## Reihenfolge
 
-1. **S4**: Hosting wieder aufsetzen (Repo anlegen und pushen, Pages auf Actions).
-2. **Build 1.2.0: A1 + A2 + A3 + G2 + G3 + G0.**
+1. **Build 1.2.0: A1 + A2 + A3 + G2 + G3 + G0.** ← nächster Schritt
 3. **I1**, dann **G1**, **B**, **C1 + C2**, **D**.
 4. **F**; **H1** nach dem Einzug; **H2** im Januar; Rest von **E**.
 5. I2, I3 nebenher. H3 richtet der Nutzer 2027 selbst ein.
@@ -112,7 +111,7 @@ Einziger Finanzguru-Punkt ohne Bankanbindung, der hier fehlt: pro Dauerauftrag �
 - **1.0.0 (05.11.2026)** Erfassen mit Rechner und Belegaufteilung, Arten und Rollen, Töpfe, Budgets mit Versionierung und Übertrag, Konten und Anlagekonten, Daueraufträge, kategorie-reine Rückerstattungen, Gegenbuchungen, Analyse, Plan-Szenario, Mustererkennung, Sparziele, Datei-Sync mit Konflikterkennung, Import aus «Meine Finanzen».
 - **1.0.1 (05.11.2026)** Android-Schreibprüfung, am 06.11. auf dem Handy bestätigt.
 - **1.1.1 (06.11.2026)** Siehe S2 und `CHANGELOG.md`.
-- **1.1.2 (06.11.2026)** Siehe S3 und `CHANGELOG.md`.
+- **1.1.2 (06.11.2026)** Siehe S3 und `CHANGELOG.md`. Veröffentlicht am 06.11. über den Zweig `gh-pages` (S4), altes Repo gelöscht (S5).
 
 ## Verworfen
 

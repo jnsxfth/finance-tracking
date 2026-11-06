@@ -8,39 +8,19 @@ Seit 1.1.2 ist der Code frei von persönlichen Daten (geprüft: `tests/t23-neue-
 
 Der Ordner ist ein Git-Repo mit einem Commit, aber ohne Gegenstelle. `finanzdaten*.json` und `sicherungen/` stehen in `.gitignore`.
 
-## Einmalig: neues Repo aufsetzen
+## Wie veröffentlicht wird (Stand 06.11.2026)
 
-Das alte Repo ist am 06.11.2026 gelöscht worden (S5 damit erledigt, die Historie ist aus dem Verlauf verschwunden). Der Name ist frei. **Nichts von Hand kopieren:** der Ordner ist ein Git-Repo, `git push` überträgt genau die richtigen Dateien.
+Repo: **privat**, `jnsxfth/finance-tracking`. Das alte Repo ist gelöscht, die Historie damit auch aus dem Verlauf verschwunden.
 
-Die Adresse muss `…github.io/finance-tracking/` bleiben, sonst findet das installierte Handy-PWA seine App nicht wieder. Das Repo muss also wieder `finance-tracking` heissen.
+Veröffentlicht wird über den Zweig **`gh-pages`**: `.github/workflows/pages-zweig.yml` läuft bei jedem Push auf `main`, baut mit `src/build.sh` und legt nur den Inhalt von `build/` in diesen Zweig. GitHub veröffentlicht den Zweig über seine ältere Pipeline (`pages-build-deployment`). Einstellung: Settings → Pages → Source **«Deploy from a branch»**, Branch **`gh-pages`**, Ordner **`/ (root)`**.
 
-**Weg A, GitHub Desktop** (legt das Repo gleich mit an):
+**Warum nicht der offizielle Weg.** `pages.yml` benutzt `upload-pages-artifact` und `deploy-pages`. Build und Artefakt-Upload gelingen, aber das Anlegen des Deployments bleibt in `deployment_queued` hängen und bricht mit «Deployment failed, try again later» ab — ein Fehler bei GitHub, der am 06.11.2026 mehrfach auftrat, auch nach Aus- und Wiedereinschalten von Pages. Der Workflow ist darum geparkt und läuft nur noch von Hand. Wenn GitHub das behoben hat: `pages.yml` von Hand starten; läuft er durch, Source zurück auf «GitHub Actions» stellen und `pages-zweig.yml` wieder auf `workflow_dispatch` beschränken. **Nie beide Wege gleichzeitig veröffentlichen lassen.**
 
-1. *File → Add local repository* → `C:\Users\Jonas\OneDrive\Finance-Tracking\development`. Es erscheinen drei Commits.
-2. *Publish repository* → Name `finance-tracking`, **«Keep this code private» angekreuzt** → *Publish*.
+`.nojekyll` liegt in `build/` (von `build.sh` erzeugt): beim Veröffentlichen aus einem Zweig läuft sonst Jekyll über die fertigen Dateien. Über GitHub Actions wäre das belanglos, aus einem Zweig nicht.
 
-**Weg B, Git auf der Kommandozeile:**
+**Branch `main` nicht als Pages-Quelle wählen** — damit würden `docs/` und `src/` mitveröffentlicht.
 
-1. Auf GitHub ein **privates** Repo `finance-tracking` anlegen — leer, ohne README und ohne `.gitignore`.
-2. Im Ordner `development`:
-   ```
-   git remote add origin https://github.com/jnsxfth/finance-tracking.git
-   git push -u origin main
-   ```
-
-Existiert das Repo schon und ist nicht leer, lehnt der Push ab. Dann entweder das leere Repo löschen und neu anlegen, oder `git push -u --force origin main` — der lokale Stand ist der gültige.
-
-**Danach in beiden Fällen:**
-
-3. Settings → Pages → **Source: GitHub Actions**. Der Workflow `.github/workflows/pages.yml` läuft bei jedem Push auf `main`: er bricht ab, falls eine Datendatei im Repo liegt, baut mit `src/build.sh` und veröffentlicht nur `build/`.
-4. Unter *Actions* den Lauf abwarten (grüner Haken), dann `https://jnsxfth.github.io/finance-tracking/` öffnen und unter Mehr → Daten die Version prüfen.
-
-**Scheitert der erste Lauf mit «Get Pages site failed»** (`configure-pages`, Schritt 5), war Pages beim Start noch nicht auf GitHub Actions gestellt. Seit dem Commit vom 06.11. schaltet der Workflow Pages über `enablement: true` selbst ein; es genügt, den Lauf zu wiederholen: *Actions* → fehlgeschlagener Lauf → *Re-run all jobs*. Bleibt es dabei, in Settings → Pages prüfen, ob als *Source* **GitHub Actions** steht.
-5. Auf dem Handy die App öffnen. Zeigt sie noch die alte Fassung: Mehr → Daten → *Nach Updates suchen*, dann *Jetzt aktualisieren*.
-
-**Pro genügt.** Pages aus privaten Repos und Actions sind enthalten. Die veröffentlichte Seite ist trotzdem öffentlich erreichbar — Zugriffsschutz gibt es nur mit Enterprise Cloud. Darum Regel 8: in `build/` nie persönliche Daten.
-
-**«Deploy from a branch» nicht verwenden.** Das kann nur `/` oder `/docs` und würde Quellen und Dokumente mitveröffentlichen.
+**Pro genügt.** Pages aus privaten Repos ist enthalten. Die veröffentlichte Seite ist trotzdem öffentlich erreichbar; Zugriffsschutz gibt es nur mit Enterprise Cloud. Darum Regel 8: in `build/` nie persönliche Daten.
 
 ## Ablauf für ein Release
 
@@ -49,7 +29,7 @@ Existiert das Repo schon und ist nicht leer, lehnt der Push ab. Dann entweder da
 3. `bash src/build.sh`
 4. Tests laufen lassen, siehe `tests/LIESMICH.md`.
 5. `build/index.html` nach persönlichen Zahlen und Namen durchsuchen.
-6. `git add -A && git commit && git push` — der Workflow baut und veröffentlicht.
+6. `git add -A && git commit && git push` — `pages-zweig.yml` baut und veröffentlicht; danach läuft GitHubs `pages-build-deployment`.
 7. Am Gerät unter Mehr → Daten die Versionsnummer prüfen. Steht die alte da, wurde der Service Worker nicht erneuert (Schritt 2).
 
 ## Git im OneDrive-Ordner

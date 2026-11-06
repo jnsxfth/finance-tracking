@@ -1,11 +1,15 @@
-# Baut die App aus src/ und veröffentlicht nur build/ auf GitHub Pages.
-# Gebaut wird in der Werkstatt, nicht im Repo-Zustand vertraut: build.sh prüft dabei
-# Element-IDs, JS und ob beide Versionsnummern zusammenpassen, und bricht sonst ab.
-name: Pages
+# GEPARKT seit 06.11.2026. Der offizielle Weg ueber die Pages-Deployment-Schnittstelle:
+# Build und Artefakt-Upload gelingen, aber deploy-pages bleibt in "deployment_queued"
+# haengen und bricht mit "Deployment failed, try again later" ab (Fehler bei GitHub,
+# nicht hier). Veroeffentlicht wird darum ueber pages-zweig.yml.
+#
+# Laeuft nur noch von Hand. Wenn GitHub den Fehler behoben hat: diesen Workflow starten,
+# und wenn er durchlaeuft, Settings -> Pages -> Source zurueck auf "GitHub Actions"
+# stellen und pages-zweig.yml auf workflow_dispatch zurueckstellen. Nie beide Wege
+# gleichzeitig veroeffentlichen lassen.
+name: Pages (offizieller Weg, geparkt)
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

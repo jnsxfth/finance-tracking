@@ -1,15 +1,22 @@
-# Ausweichweg, falls der offizielle Weg (pages.yml) in "deployment_queued" haengt.
-# Dieser hier benutzt die Pages-Deployment-Schnittstelle nicht: er baut die App und
-# legt nur den Inhalt von build/ in den Zweig gh-pages. Pages veroeffentlicht dann
-# diesen Zweig ueber die aeltere, getrennte Pipeline.
+# Der Weg, der funktioniert (seit 06.11.2026 in Betrieb). Er benutzt die
+# Pages-Deployment-Schnittstelle nicht, denn die bleibt in "deployment_queued" haengen:
+# er baut die App und legt nur den Inhalt von build/ in den Zweig gh-pages.
+# Pages veroeffentlicht diesen Zweig ueber die aeltere, getrennte Pipeline.
 #
-# Starten: Actions -> "Pages ueber gh-pages-Zweig" -> Run workflow.
-# Danach: Settings -> Pages -> Source "Deploy from a branch", Branch gh-pages, Ordner / (root).
-# Laeuft bewusst nur von Hand, damit nie beide Wege gleichzeitig veroeffentlichen.
+# Voraussetzung, einmalig: Settings -> Pages -> Source "Deploy from a branch",
+# Branch gh-pages, Ordner / (root).
+#
+# Der offizielle Weg liegt daneben in pages.yml und laeuft nur noch von Hand.
 name: Pages ueber gh-pages-Zweig
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
+
+concurrency:
+  group: pages-zweig
+  cancel-in-progress: true
 
 permissions:
   contents: write
