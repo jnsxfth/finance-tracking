@@ -1,4 +1,4 @@
-# Architektur, Datenmodell, Rechenregeln (Stand 1.2.1)
+# Architektur, Datenmodell, Rechenregeln (Stand 1.2.2)
 
 ## Ordner, Dateien und Build
 
@@ -77,6 +77,8 @@ state = {
 **Negative Beträge sind Rückerstattungen.** Sie senken nur die Ausgaben **ihrer eigenen** Kategorie. Bleibt nach der Verrechnung in einer Kategorie Geld übrig (Erstattung ohne passende Ausgabe im Zeitraum), wird dieser Rest in `ausSplit()` separat als `ueber` ausgewiesen, statt stillschweigend fremde Kategorien zu verbilligen. Das war ein echter Fehler und ist mit Bedacht so gelöst.
 
 **Ist ist Vergangenheit.** `agg()` baut einen Index `typ|jahr|monat|kategorieId → Betrag` und überspringt alles mit `datum > TODAY`. Zukünftige Buchungen fliessen ausschliesslich über `planSplit()` und `geplanteSerien()` ein und erscheinen nie im Ist. Nach jeder Änderung an `state.transaktionen` muss `aggInvalidate()` laufen, zusätzlich `ROLLC = null`, wenn Budgets betroffen sind. Jahre vor 2026 **ohne** Buchungen kommen aus `state.hist` (`jahrTotal`, `istKat`); hat ein Jahr Buchungen, gewinnt `hatLive()` und die Historie wird nicht gelesen. Beim Autor haben alle Historienjahre Buchungen (Import), dort wirkt nur `hist.verm` im Vermögensverlauf.
+
+**Brutto und netto auf «Wiederk.»** (seit 1.2.2). Ein Dauerauftrag vom Typ `Ausgabe` mit negativem Betrag ist eine wiederkehrende Rückerstattung, einer vom Typ `Einnahme` mit negativem Betrag ein Abzug. `renderAbos` hält beides getrennt: die Zeilen «Wiederkehrende Ausgaben» und «Wiederkehrende Einnahmen» summieren **nur** die Serien, die in ihre Richtung zeigen, und nehmen die Beträge absolut (`bt(...)`); die Gegenstücke stehen als eigene Zeile darunter und erscheinen nur, wenn es sie gibt. Der Blickfang «Fixkosten pro Monat» bleibt die **verrechnete** Summe (`mt(s=>s.typ==='Ausgabe')`), also die effektive Belastung. Oben und unten stehen darum absichtlich verschiedene Zahlen. Würde man die Zeilen verrechnen, stände zweimal dasselbe da und man sähe nie, was tatsächlich belastet.
 
 **Konsum.** `istKonsum(k)` entscheidet, ob eine Ausgabe im Konsum mitzählt. Sparen, Vorsorge und Steuerrückstellungen sind Ausgaben, aber kein Konsum. Die Art der Kategorie bestimmt das, nicht die Kategorie selbst.
 
@@ -160,7 +162,7 @@ Steht ein Container mit echtem Playwright und den Dateien zur Verfügung, laufen
 | `t21-historie.js` | Buchungsjahre unabhängig von der Historie, Jahre ohne Buchungen aus ihr, Vermögensverlauf, leere Fächer ohne Historie | `node t21… <index.html> <finanzdaten.json>` |
 | `t22-sw-fehlerseite.js` | Service Worker legt keine 404 über die gute Fassung | `node t22… <sw.js>` |
 | `t23-neue-person.js` | Erststart ohne Datei: Startkategorien ohne Budget, keine persönlichen Namen, alle sechs Bildschirme | `node t23… <index.html>` |
-| `t24-bedienung.js` | `formOeffnen`, Nettoüberträge, Klicksperre (drei Tipps → eine Buchung), kompaktes JSON, Rückgängig | `node t24… <index.html> <finanzdaten.json>` |
+| `t24-bedienung.js` | `formOeffnen`, Nettoüberträge, Brutto-Zeilen samt Gegenstücken, Klicksperre (drei Tipps → eine Buchung), kompaktes JSON, Rückgängig | `node t24… <index.html> <finanzdaten.json>` |
 | `t25-touch.js` | **echter Browser**: Rechnerzeile am Finger, Fokus bleibt im Feld, beide Klappen auf «Wiederk.» | `node t25… <index.html>` |
 
 Erwartungswerte gehören nie in den Test, sondern werden aus der Datei gerechnet (Regel 8). Die Reihe t9–t17 ist verloren (sie lief gegen die private Datei); Ersatz ist Roadmap I1. Kurzfassung in `tests/LIESMICH.md`. Layout geprüft auf 360, 390, 430 und 820 px Breite.

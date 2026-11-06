@@ -1,5 +1,5 @@
 /* ============================= Helfer ============================= */
-const APP_VERSION='1.2.1 · 06.11.2026';
+const APP_VERSION='1.2.2 · 06.11.2026';
 let SWREG=null;
 const $ = id => document.getElementById(id);
 const qsa = s => [...document.querySelectorAll(s)];
@@ -1175,14 +1175,27 @@ function renderUeberNetto(aktiv){
 function renderAbos(){
   const aktiv=state.serien.filter(s=>s.aktiv!==false);
   const mt=f=>aktiv.filter(f).reduce((s,x)=>s+serieMonatsBetrag(x),0);
-  const mAus=mt(s=>s.typ==='Ausgabe'), mEin=mt(s=>s.typ==='Einnahme');
+  // Brutto heisst: nur die Serien, die in diese Richtung wirken. Eine Ausgabe-Serie mit
+  // negativem Betrag ist eine wiederkehrende Rueckerstattung; sie gehoert nicht in die
+  // Ausgabensumme, sondern in ihre eigene Zeile. Sonst steht oben und unten dieselbe
+  // verrechnete Zahl, und man sieht nie, was tatsaechlich belastet.
+  const bt=f=>aktiv.filter(f).reduce((s,x)=>s+Math.abs(serieMonatsBetrag(x)),0);
+  const ausBrutto=bt(s=>s.typ==='Ausgabe'&&+s.betrag>0);
+  const ausRueck =bt(s=>s.typ==='Ausgabe'&&+s.betrag<0);
+  const einBrutto=bt(s=>s.typ==='Einnahme'&&+s.betrag>0);
+  const einAbzug =bt(s=>s.typ==='Einnahme'&&+s.betrag<0);
+  const mAus=mt(s=>s.typ==='Ausgabe');          // Blickfang bleibt die effektive Belastung
   $('fixMonat').textContent=fmtCHF(mAus); $('fixJahr').textContent=fmtCHF(mAus*12);
-  $('fixAus').textContent=mAus?fmtCHF(mAus)+' / Mt':'–';
-  $('fixEin').textContent=mEin?'+'+fmtCHF(mEin)+' / Mt':'–';
+  $('fixAus').textContent=ausBrutto?'−'+fmtCHF(ausBrutto)+' / Mt':'–';
+  $('fixAusRueck').textContent=ausRueck?'+'+fmtCHF(ausRueck)+' / Mt':'';
+  $('rowAusRueck').classList.toggle('hidden',!ausRueck);
+  $('fixEin').textContent=einBrutto?'+'+fmtCHF(einBrutto)+' / Mt':'–';
+  $('fixEinAbzug').textContent=einAbzug?'−'+fmtCHF(einAbzug)+' / Mt':'';
+  $('rowEinAbzug').classList.toggle('hidden',!einAbzug);
   const ueb=renderUeberNetto(aktiv);
   // Zusammenfassung in der Klappe: was man sieht, ohne sie zu oeffnen.
   const teile=[];
-  if(mEin) teile.push('Einnahmen +'+fmt0(mEin));
+  if(einBrutto) teile.push('Einnahmen +'+fmt0(einBrutto));
   if(ueb) teile.push('Überträge auf '+ueb+(ueb===1?' Konto':' Konten'));
   $('fixSum').textContent=teile.length?' · '+teile.join(' · '):'';
   $('serList').innerHTML=state.serien.map(s=>{

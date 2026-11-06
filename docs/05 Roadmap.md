@@ -1,4 +1,4 @@
-# Roadmap (Stand 06.11.2026, nach Release 1.2.1)
+# Roadmap (Stand 06.11.2026, nach Release 1.2.2)
 
 Gebaut wird nur, was ein prüfbares «Fertig heisst» hat. Die Reihenfolge ist ein Vorschlag.
 
@@ -23,7 +23,7 @@ Gebaut wird nur, was ein prüfbares «Fertig heisst» hat. Die Reihenfolge ist e
 - **A3 ✅ 1.2.0** Überträge netto pro Konto, Töpfe als Unterzeile.
 - **A4 Punkt 1 und 2 ✅ 1.2.0** Klicksperre (`einmal`) und kompaktes JSON (684 → 540 KB).
 
-**A4 Punkt 3 bis 5, offen (1.2.1).** Alles, was `persist.js` tief anfasst:
+**A4 Punkt 3 bis 5, offen (Build «Datei»).** Alles, was `persist.js` tief anfasst:
 3. **Konfliktprüfung ohne Vollparse**: für `meta.rev` genügt ein `match(/"rev"\s*:\s*(\d+)/)` auf dem Text, statt die ganze Datei zu parsen. Dasselbe in `bestaetigeSchreiben()`.
 4. **localStorage-Kopie entkoppeln**: nicht vor jedem Dateischreiben synchron die ganze Datei, sondern danach und nur, wenn das Schreiben scheitert oder beim Verlassen der Seite (`visibilitychange`).
 5. **`renderAll()` eingrenzen**: nur den sichtbaren Bildschirm rendern, die übrigen beim Wechsel. Erst nach der Messung aus I2, weil hier Bildschirme veralten können.
@@ -57,6 +57,7 @@ Grösster Alltagsgewinn. Bausteine in `phase5.js`: `normTitel()`, `worte()`. (1)
 - **C3 ✅ 1.2.0** Rückmeldung beim Bearbeiten, erledigt mit A2.
 - **C5 ✅ 1.2.1** «Wiederk.» aufgeräumt: Fixkosten-Kachel mit Klappe «Wiederkehrend im Detail» (Ausgaben, Einnahmen, Nettoüberträge je Konto), «Erkannte Muster» als Klappe mit Anzahl im Kopf.
 - **C6 offen, eine Ansage genügt.** «Fixkosten pro Monat» zählt heute **alle** Ausgabe-Daueraufträge, nicht nur die mit Art-Rolle `fix`. Streng gezählt wäre es eine kleinere Zahl. Ändert eine bekannte Kennzahl, darum nur auf ausdrückliche Ansage.
+- **C7 ✅ 1.2.2** Ausgaben und Einnahmen in der Klappe **brutto**: nur Serien, die in ihre Richtung wirken. Wiederkehrende Rückerstattungen und Abzüge als eigene Zeile, nicht gegengerechnet; der Blickfang bleibt die effektive Belastung (t24, mit Gegenprobe).
 - **C4** Über vierzig Kategorien flach: erst anschauen, ob es stört.
 
 ---
@@ -105,11 +106,13 @@ Einziger Finanzguru-Punkt ohne Bankanbindung, der hier fehlt: pro Dauerauftrag �
 
 1. **Build 1.2.0 «Bedienung» ✅** A1 + A2 + A3 + A4 (Punkt 1 und 2) + G2.
 2. **Build 1.2.1 «Nachtrag» ✅** A1-Fehler behoben, «Wiederk.» aufgeräumt (C5).
-3. **Build 1.2.2 «Datei»: G0 + G3 + A4 (Punkt 3 bis 5) + I2-Messung.** ← nächster Schritt
+3. **Build 1.2.2 «Brutto» ✅** C7.
+4. **Build «Datei»: G0 + G3 + A4 (Punkt 3 bis 5) + I2-Messung.** ← nächster Schritt
    Alles, was `persist.js` tief anfasst, in einem Zug. G1 folgt in der Bauform, die G0 ergibt.
-4. **I1**, dann **G1**, **B**, **C1 + C2**, **D**.
-5. **F**; **H1** nach dem Einzug; **H2** im Januar; Rest von **E**.
-6. I3 nebenher. H3 richtet der Nutzer 2027 selbst ein.
+   *Ohne Nummer notiert:* Zwischenbuilds haben die Nummerierung schon zweimal verschoben. Die Nummer bekommt ein Build beim Bauen, nicht in der Planung.
+5. **I1**, dann **G1**, **B**, **C1 + C2**, **D**.
+6. **F**; **H1** nach dem Einzug; **H2** im Januar; Rest von **E**.
+7. I3 nebenher. H3 richtet der Nutzer 2027 selbst ein.
 
 ## Offene Fragen
 
@@ -125,6 +128,7 @@ Einziger Finanzguru-Punkt ohne Bankanbindung, der hier fehlt: pro Dauerauftrag �
 - **1.1.2 (06.11.2026)** Siehe S3 und `CHANGELOG.md`. Veröffentlicht am 06.11. über den Zweig `gh-pages` (S4), altes Repo gelöscht (S5).
 - **1.2.0 (06.11.2026)** A1, A2, A3, A4 (1+2), G2, dazu C3. Siehe `CHANGELOG.md`.
 - **1.2.1 (06.11.2026)** A1-Fehler behoben (Touch), C5. Siehe `CHANGELOG.md`.
+- **1.2.2 (06.11.2026)** C7 Brutto-Zeilen auf «Wiederk.». Siehe `CHANGELOG.md`.
 
 ## Verworfen
 

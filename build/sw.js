@@ -1,7 +1,7 @@
 // Macht die App offline nutzbar. Cacht nur den Programmcode, niemals deine Daten.
 // Die Versionsnummer muss sich bei jeder neuen Fassung ändern, sonst merkt der
 // Browser nicht, dass es etwas Neues gibt.
-const VERSION = '1.2.1-2026-11-06';
+const VERSION = '1.2.2-2026-11-06';
 const CACHE = 'finanztracker-' + VERSION;
 const DATEIEN = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => {

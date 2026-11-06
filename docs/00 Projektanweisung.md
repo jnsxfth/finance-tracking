@@ -6,7 +6,7 @@ Text für das Feld «Projektanweisungen» des Projekts: alles unterhalb der Lini
 
 ## Was das Projekt ist
 
-Lokaler, abofreier Finanz-Tracker: eine HTML-Datei als PWA für Android und PC, Zahlen in einer JSON-Datei in OneDrive. Kein Konto, kein Abo, kein fremder Server. Aktueller Stand: siehe `CHANGELOG` (zuletzt **1.2.1, 06.11.2026**).
+Lokaler, abofreier Finanz-Tracker: eine HTML-Datei als PWA für Android und PC, Zahlen in einer JSON-Datei in OneDrive. Kein Konto, kein Abo, kein fremder Server. Aktueller Stand: siehe `CHANGELOG` (zuletzt **1.2.2, 06.11.2026**).
 
 Nutzer: 26, Basel-Stadt, zieht in eine 2er-WG, ein Arbeitgeber. Ersetzt die App «Meine Finanzen».
 

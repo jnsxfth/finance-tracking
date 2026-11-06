@@ -1,4 +1,5 @@
-// t24: Logik aus 1.2.0/1.2.1 gegen die echte Datei: A2 formOeffnen, A3 Überträge netto,
+// t24: Logik aus 1.2.0 bis 1.2.2 gegen die echte Datei: A2 formOeffnen, A3 Überträge netto,
+// C7 Brutto-Zeilen,
 // A4 Klicksperre und kompaktes JSON, G2 Rückgängig nach Löschen.
 // A1 (Rechnerzeile) und die Klappen stehen in t25 und brauchen einen echten Browser:
 // jsdom lässt den Fehler aus 1.2.0 durch, weil es keine Touch-Vorgaben kennt.
@@ -53,6 +54,34 @@ const chk = (n, ok, info) => { console.log((ok ? 'OK    ' : 'FEHL  ') + n + (inf
   chk('Quellkonto zeigt denselben Betrag negativ', a3.a === -(700 + (a3.topfZeilen ? 150 : 0)), 'netto ' + a3.a);
   chk('Topf-Dauerauftrag als Unterzeile', a3.topfZeilen === null || (a3.topfZeilen === 1 && a3.topfBetrag === 150), 'Topfzeilen: ' + a3.topfZeilen);
   chk('Wiederk. rendert den Kasten', a3.kasten);
+
+  // --- C7: Ausgaben und Einnahmen brutto, Gegenstuecke als eigene Zeile ---
+  const c7 = await page.evaluate(() => {
+    const alt = state.serien, k = state.konten[0].name;
+    const s = (typ, betrag) => ({ id: 'x' + Math.random(), typ, titel: 'T', betrag, konto: k, n: 1, einheit: 'M', start: TODAY, aktiv: true });
+    state.serien = [s('Ausgabe', 100), s('Ausgabe', 50), s('Ausgabe', -30), s('Einnahme', 200), s('Einnahme', -20)];
+    renderAbos();
+    const o = {
+      aus: $('fixAus').textContent, rueck: $('fixAusRueck').textContent,
+      ein: $('fixEin').textContent, abzug: $('fixEinAbzug').textContent,
+      blick: $('fixMonat').textContent,
+      rueckSichtbar: !$('rowAusRueck').classList.contains('hidden'),
+      abzugSichtbar: !$('rowEinAbzug').classList.contains('hidden'),
+      soll: { aus: fmtCHF(150), rueck: fmtCHF(30), ein: fmtCHF(200), abzug: fmtCHF(20), blick: fmtCHF(120) },
+    };
+    // ohne Gegenstuecke bleiben die Unterzeilen weg
+    state.serien = [s('Ausgabe', 100), s('Einnahme', 200)];
+    renderAbos();
+    o.ohneRueck = $('rowAusRueck').classList.contains('hidden') && $('rowEinAbzug').classList.contains('hidden');
+    state.serien = alt; renderAbos();
+    return o;
+  });
+  chk('Ausgaben brutto: Rückerstattung nicht gegengerechnet', c7.aus === '\u2212' + c7.soll.aus + ' / Mt', c7.aus);
+  chk('Rückerstattungen als eigene Zeile', c7.rueckSichtbar && c7.rueck === '+' + c7.soll.rueck + ' / Mt', c7.rueck);
+  chk('Einnahmen brutto: Abzug nicht gegengerechnet', c7.ein === '+' + c7.soll.ein + ' / Mt', c7.ein);
+  chk('Abzüge als eigene Zeile', c7.abzugSichtbar && c7.abzug === '\u2212' + c7.soll.abzug + ' / Mt', c7.abzug);
+  chk('Blickfang bleibt die effektive Belastung', c7.blick === c7.soll.blick, c7.blick);
+  chk('ohne Gegenstücke keine Unterzeilen', c7.ohneRueck);
 
   // --- A4: Klicksperre und kompaktes JSON ---
   const a4 = await page.evaluate(async () => {

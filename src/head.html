@@ -509,9 +509,11 @@ dialog::backdrop{background:rgba(8,10,12,.55);}
     <details class="fold inline" id="fixDetails" style="margin:12px 0 0">
       <summary>Wiederkehrend im Detail<span class="sum" id="fixSum"></span></summary>
       <div class="kv"><span>Wiederkehrende Ausgaben</span><span class="num" id="fixAus">–</span></div>
+      <div class="kv small hidden" id="rowAusRueck"><span>wiederkehrende Rückerstattungen</span><span class="pos num" id="fixAusRueck"></span></div>
       <div class="kv"><span>Wiederkehrende Einnahmen</span><span class="pos num" id="fixEin">–</span></div>
+      <div class="kv small hidden" id="rowEinAbzug"><span>wiederkehrende Abzüge davon</span><span class="num" id="fixEinAbzug"></span></div>
       <div id="fixUebBox"></div>
-      <p class="small">Überträge auf eigene Konten sind keine Kosten. Gezeigt wird je Konto, was pro Monat netto hineinfliesst – Zuflüsse minus Rückbuchungen. Die wiederkehrenden Ausgaben sind dieselbe Zahl wie die Fixkosten oben, hier nur der Vollständigkeit wegen.</p>
+      <p class="small">Ausgaben und Einnahmen stehen hier <b>brutto</b>: nur, was in diese Richtung wirkt. Wiederkehrende Rückerstattungen und Abzüge stehen als eigene Zeile darunter, nicht gegengerechnet. Der Blickfang oben ist die effektive Belastung, also Ausgaben minus Rückerstattungen. Überträge auf eigene Konten sind keine Kosten; dort steht je Konto, was pro Monat netto hineinfliesst.</p>
     </details>
   </div>
   <div class="card">
