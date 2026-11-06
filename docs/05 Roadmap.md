@@ -1,4 +1,4 @@
-# Roadmap (Stand 06.11.2026, nach Release 1.1.1)
+# Roadmap (Stand 06.11.2026, nach Release 1.1.2)
 
 Gebaut wird nur, was ein prüfbares «Fertig heisst» hat. Die Reihenfolge ist ein Vorschlag.
 
@@ -6,20 +6,15 @@ Gebaut wird nur, was ein prüfbares «Fertig heisst» hat. Die Reihenfolge ist e
 
 ---
 
-## S — Persönliche Daten aus dem öffentlichen Netz. Zuerst.
+## S — Persönliche Daten aus dem öffentlichen Netz
 
-**Anlass.** `index.html` enthielt über `data.js` die Jahreshistorie 2019–2025 (Einnahmen, Ausgaben, Vermögen) und Budgetzahlen und war über GitHub Pages öffentlich. Ein Repo privat zu stellen stoppt Pages nicht; Zugriffsschutz gibt es nur mit Enterprise Cloud.
+**Anlass.** `index.html` enthielt über `data.js` die Jahreshistorie 2019–2025 und Budgetzahlen und war über GitHub Pages öffentlich. Ein Repo privat zu stellen stoppt Pages nicht; Zugriffsschutz gibt es nur mit Enterprise Cloud.
 
-- **S1 ✅** Pages aus, Repo archiviert (06.11.).
-- **S2 ✅ 1.1.1** Historie in `state.hist`, beim Laden sofort in die Datei gesichert; Service Worker cacht keine 404.
-- **S3 ← nächster Schritt, 1.1.2.** `HIST_AUS/EIN/VERM` und die Budgetzahlen in `DEFAULT_KATEGORIEN` aus `data.js` löschen; `migrate()` legt `hist` leer an, `vermoegenAnzeige` verträgt leere Historie.
-  *Bedingung:* Die Live-Datei (Kopie in `development/finanzdaten.json`) enthält `hist` mit sieben Jahren. Geprüft vor dem Löschen, nicht angenommen.
-  *Fertig heisst:* `jahrTotal` je Jahr 2019–2025 und `vermTotal` 2025 gleich wie in 1.1.1; `build/index.html` enthält keine Zahlen aus der Historie und keine Budgetbeträge.
-- **S4** Hosting neu, erst nach S3: privates Repo, Veröffentlichung nur von `build/` per Actions-Workflow, gleiche Adresse (Details `04 Deployment.md`).
-- **S5** Altes Repo löschen (sein Verlauf enthält die Zahlen), nach S4.
-- **Offen, Entscheidung beim Nutzer:** Institutionsnamen im Code (`APP_MAP`, `MF_VORSCHLAG`: Saxo, Relai, Revolut, Raiffeisen; Beispieltexte in `head.html`) und persönliche Kategorienamen in `DEFAULT_KATEGORIEN` (Sold Militär, Unterstützung Eltern, Trainingslager). Keine Beträge. Empfehlung: Import-Vorschläge entfernen, sobald der Import nicht mehr gebraucht wird; Standardkategorien durch eine neutrale Vorlage ersetzen (E).
-
----
+- **S1 ✅** Pages aus, altes Repo archiviert (06.11.).
+- **S2 ✅ 1.1.1** Historie nach `state.hist`, beim Laden sofort gesichert; Service Worker cacht keine 404.
+- **S3 ✅ 1.1.2** `HIST_*` und `APP_MAP` gelöscht, Startwerte neutral und ohne Beträge, Institutionsnamen und persönliche Zielkategorien aus den Import-Vorschlägen und Platzhaltern entfernt. Geprüft per `t23-neue-person` und Textsuche über `build/index.html`.
+- **S4 ← nächster Schritt, beim Nutzer.** Neues privates Repo, Veröffentlichung nur von `build/` per Actions-Workflow, gleiche Adresse. Ordner ist Git-Repo mit erstem Commit, Workflow liegt bereit; Schritte in `04 Deployment.md`. *Fertig heisst:* Die App lädt unter der alten Adresse und zeigt unter Mehr → Daten die erwartete Version; das Handy-PWA aktualisiert sich wieder.
+- **S5** Altes Archiv-Repo löschen (sein Verlauf enthält die Zahlen), nach S4.
 
 ## A — Fehler, klein
 
@@ -84,7 +79,7 @@ Töpfe: Steuern, Franchise/Selbstbehalt, Ferien, Trainingslager, ÖV-Abo (U-Abo 
 
 ## E — Zweite Person (Rest nach S)
 
-Technisch braucht eine zweite Person nichts Neues: dieselbe Adresse, «Neue Datei erstellen». Mit S3 verschwindet der Hauptblocker (fremde Zahlen im Code). Offen bleibt die Erstabfrage «Eigene Kategorien anlegen» oder «Vorlage übernehmen» mit neutraler Vorlage. Verworfen: Anmeldung, Mehrbenutzerbetrieb, Rechteverwaltung.
+Technisch braucht eine zweite Person nichts Neues: dieselbe Adresse, «Neue Datei erstellen». Mit S3 ist der Hauptblocker weg: der Code bringt keine fremden Zahlen mehr mit. Offen bleibt die Erstabfrage «Eigene Kategorien anlegen» oder «Vorlage übernehmen» mit neutraler Vorlage. Verworfen: Anmeldung, Mehrbenutzerbetrieb, Rechteverwaltung.
 
 ## F — Kündigungsfristen
 
@@ -100,7 +95,7 @@ Einziger Finanzguru-Punkt ohne Bankanbindung, der hier fehlt: pro Dauerauftrag �
 
 ## Reihenfolge
 
-1. **S3 → S4 → S5** (1.1.2, dann Hosting).
+1. **S4 → S5**: Hosting wieder aufsetzen, dann das alte Repo löschen.
 2. **Build 1.2.0: A1 + A2 + A3 + G2 + G3 + G0.**
 3. **I1**, dann **G1**, **B**, **C1 + C2**, **D**.
 4. **F**; **H1** nach dem Einzug; **H2** im Januar; Rest von **E**.
@@ -108,15 +103,16 @@ Einziger Finanzguru-Punkt ohne Bankanbindung, der hier fehlt: pro Dauerauftrag �
 
 ## Offene Fragen
 
-1. S: Institutionsnamen und persönliche Kategorienamen im Code entfernen? (Empfehlung ja, siehe S.)
-2. C1: Erst Entwurf ansehen (Standard) oder direkt bauen?
-3. H1: Forderungskonto oder Topf, nach dem Einzug.
+1. **C1:** Erst Entwurf ansehen (Standard) oder direkt bauen?
+2. **H1:** Forderungskonto oder Topf? Nach dem Einzug, mit echten Fällen.
+3. **Historie in der Datei:** `hist.aus` und `hist.ein` werden bei dieser Datei nie gelesen, weil alle sieben Jahre Buchungen haben. Nur `hist.verm` wirkt (Vermögensverlauf). Entfernen würde die Datei um rund 4 KB verkleinern und nichts Sichtbares kosten — aber es löscht Daten, also nur auf ausdrückliche Ansage.
 
 ## Abgeschlossen
 
 - **1.0.0 (05.11.2026)** Erfassen mit Rechner und Belegaufteilung, Arten und Rollen, Töpfe, Budgets mit Versionierung und Übertrag, Konten und Anlagekonten, Daueraufträge, kategorie-reine Rückerstattungen, Gegenbuchungen, Analyse, Plan-Szenario, Mustererkennung, Sparziele, Datei-Sync mit Konflikterkennung, Import aus «Meine Finanzen».
 - **1.0.1 (05.11.2026)** Android-Schreibprüfung, am 06.11. auf dem Handy bestätigt.
 - **1.1.1 (06.11.2026)** Siehe S2 und `CHANGELOG.md`.
+- **1.1.2 (06.11.2026)** Siehe S3 und `CHANGELOG.md`.
 
 ## Verworfen
 

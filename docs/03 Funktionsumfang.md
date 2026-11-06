@@ -1,4 +1,4 @@
-# Funktionsumfang, Grenzen, offene Punkte (Stand 1.1.1, 06.11.2026)
+# Funktionsumfang, Grenzen, offene Punkte (Stand 1.1.2, 06.11.2026)
 
 ## Was die App kann
 
@@ -20,7 +20,7 @@
 
 **Sparziele** mit Fortschritt, nötiger Monatsrate gegen die tatsächliche Sparrate und Prognosedatum. Ein Ziel kann den Stand eines Topfes ablesen.
 
-**Daten.** Datei über die File System Access API, Konflikterkennung über eine Revisionsnummer, Prüfung nach jedem Schreiben, tolerantes Lesen bei beschädigten Dateien, JSON- und CSV-Export, Import aus «Meine Finanzen» inklusive Kategorien-Zuordnung. Jahreshistorie 2019 bis 2025 auf Jahresebene, nur lesbar; liegt seit 1.1.1 in der Datei (`state.hist`), die Code-Konstanten entfallen mit 1.1.2.
+**Daten.** Datei über die File System Access API, Konflikterkennung über eine Revisionsnummer, Prüfung nach jedem Schreiben, tolerantes Lesen bei beschädigten Dateien, JSON- und CSV-Export, Import aus «Meine Finanzen» inklusive Kategorien-Zuordnung. Jahreshistorie 2019 bis 2025 auf Jahresebene, nur lesbar; liegt seit 1.1.1 in der Datei (`state.hist`), seit 1.1.2 nicht mehr im Code. Sie wirkt nur für Jahre ohne Buchungen sowie im Vermögensverlauf.
 
 ## Bewusst nicht enthalten
 
