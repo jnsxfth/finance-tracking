@@ -34,6 +34,8 @@ Existiert das Repo schon und ist nicht leer, lehnt der Push ab. Dann entweder da
 
 3. Settings → Pages → **Source: GitHub Actions**. Der Workflow `.github/workflows/pages.yml` läuft bei jedem Push auf `main`: er bricht ab, falls eine Datendatei im Repo liegt, baut mit `src/build.sh` und veröffentlicht nur `build/`.
 4. Unter *Actions* den Lauf abwarten (grüner Haken), dann `https://jnsxfth.github.io/finance-tracking/` öffnen und unter Mehr → Daten die Version prüfen.
+
+**Scheitert der erste Lauf mit «Get Pages site failed»** (`configure-pages`, Schritt 5), war Pages beim Start noch nicht auf GitHub Actions gestellt. Seit dem Commit vom 06.11. schaltet der Workflow Pages über `enablement: true` selbst ein; es genügt, den Lauf zu wiederholen: *Actions* → fehlgeschlagener Lauf → *Re-run all jobs*. Bleibt es dabei, in Settings → Pages prüfen, ob als *Source* **GitHub Actions** steht.
 5. Auf dem Handy die App öffnen. Zeigt sie noch die alte Fassung: Mehr → Daten → *Nach Updates suchen*, dann *Jetzt aktualisieren*.
 
 **Pro genügt.** Pages aus privaten Repos und Actions sind enthalten. Die veröffentlichte Seite ist trotzdem öffentlich erreichbar — Zugriffsschutz gibt es nur mit Enterprise Cloud. Darum Regel 8: in `build/` nie persönliche Daten.
