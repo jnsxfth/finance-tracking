@@ -1,0 +1,42 @@
+# Ausweichweg, falls der offizielle Weg (pages.yml) in "deployment_queued" haengt.
+# Dieser hier benutzt die Pages-Deployment-Schnittstelle nicht: er baut die App und
+# legt nur den Inhalt von build/ in den Zweig gh-pages. Pages veroeffentlicht dann
+# diesen Zweig ueber die aeltere, getrennte Pipeline.
+#
+# Starten: Actions -> "Pages ueber gh-pages-Zweig" -> Run workflow.
+# Danach: Settings -> Pages -> Source "Deploy from a branch", Branch gh-pages, Ordner / (root).
+# Laeuft bewusst nur von Hand, damit nie beide Wege gleichzeitig veroeffentlichen.
+name: Pages ueber gh-pages-Zweig
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  veroeffentlichen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Keine Datendatei im Repo
+        run: |
+          if git ls-files | grep -qiE 'finanzdaten|sicherungen/'; then
+            echo "FEHLER: Datendatei oder Sicherung im Repo gefunden."; git ls-files | grep -iE 'finanzdaten|sicherungen/'; exit 1
+          fi
+
+      - name: Bauen und prüfen
+        run: bash src/build.sh
+
+      - name: build/ in den Zweig gh-pages schreiben
+        run: |
+          cd build
+          touch .nojekyll          # keine Jekyll-Verarbeitung, die Dateien sind fertig
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Veröffentlicht aus ${GITHUB_SHA:0:7}"
+          git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
+          echo "gh-pages aktualisiert. Pages-Source auf 'Deploy from a branch' / gh-pages / (root) stellen."
