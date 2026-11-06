@@ -173,7 +173,7 @@ function musterUebernehmen(m) {
   else if (m.med >= 20) { $('serN').value = 1; $('serEinheit').value = 'M'; }
   else { $('serN').value = Math.max(1, Math.round(m.med / 7)); $('serEinheit').value = 'W'; }
   $('serAuto').checked = false;
-  $('serTitel').scrollIntoView({ block: 'center' });
+  formOeffnen('serTitel');
   showMsg('ok', 'Übernommen. Betrag und Rhythmus prüfen, dann speichern.');
 }
 

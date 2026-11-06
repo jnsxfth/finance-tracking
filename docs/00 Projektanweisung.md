@@ -6,7 +6,7 @@ Text für das Feld «Projektanweisungen» des Projekts: alles unterhalb der Lini
 
 ## Was das Projekt ist
 
-Lokaler, abofreier Finanz-Tracker: eine HTML-Datei als PWA für Android und PC, Zahlen in einer JSON-Datei in OneDrive. Kein Konto, kein Abo, kein fremder Server. Aktueller Stand: siehe `CHANGELOG` (zuletzt **1.1.1, 06.11.2026**).
+Lokaler, abofreier Finanz-Tracker: eine HTML-Datei als PWA für Android und PC, Zahlen in einer JSON-Datei in OneDrive. Kein Konto, kein Abo, kein fremder Server. Aktueller Stand: siehe `CHANGELOG` (zuletzt **1.2.0, 06.11.2026**).
 
 Nutzer: 26, Basel-Stadt, zieht in eine 2er-WG, ein Arbeitgeber. Ersetzt die App «Meine Finanzen».
 
@@ -20,7 +20,7 @@ Widerspreche, wenn eine Idee von mir die App verschlechtert. Lieber ein Satz Beg
 
 - **Code und Dokumente liegen im lokalen Ordner** `C:\Users\Jonas\OneDrive\Finance-Tracking\development`. Das ist die einzige Quelle der Wahrheit. Das Projekt enthält nur die Dokumente (`00`–`06`), keinen Code.
 - Zu Beginn prüfen, ob der Ordner verbunden ist (`get_device_info`). Fehlt er: mich bitten, ihn zu verbinden («+» neben dem Nachrichtenfeld → Ordner hinzufügen). Nie Code aus dem Gedächtnis oder aus alten Chats rekonstruieren.
-- Auf dem Rechner läuft nur eine Linux-Shell (git, node, python; **kein Playwright**). Tests laufen im Cloud-Container: `build/index.html` und was der Test braucht per `device_stage_files` holen. Löschen im Ordner geht nur nach `device_request_delete_permission`; der Build braucht es nicht.
+- Auf dem Rechner läuft nur eine Linux-Shell (git, node, python; **kein Playwright**). Tests laufen seit 1.2.0 dort: einmal `npm install jsdom` ausserhalb des Projektordners, dann `NODE_PATH=<dort>/node_modules node -r ./tests/pw-jsdom.js tests/<test>.js build/index.html finanzdaten.json`. `tests/pw-jsdom.js` ist der Playwright-Ersatz; Einzelheiten in `01 Architektur.md`. Steht ein Container mit echtem Playwright **und** den Dateien bereit (`device_stage_files`), laufen dieselben Tests dort ohne `-r`. Löschen im Ordner geht nur nach `device_request_delete_permission`; der Build braucht es nicht.
 - `finanzdaten.json` im Ordner ist eine Arbeitskopie: nur lesen, nie überschreiben, nicht verschieben. Vor jedem Test oder Umbau, der sie anfasst, eine Kopie nach `sicherungen/`.
 
 ## Vor dem ersten Code
@@ -31,7 +31,7 @@ Lies `docs/05 Roadmap.md` (Stand und nächster Schritt) und `docs/01 Architektur
 
 1. **Kein Framework, keine Abhängigkeit, kein Build-Werkzeug.** Vanilla JS, eine Datei. Ausnahme ist die Schrift Archivo von Google Fonts, mit Fallback.
 2. **Bei jedem Release zwei Versionsnummern erhöhen**: `APP_VERSION` in `main.js` und `VERSION` in `sw.js`. `build.sh` bricht ab, wenn sie nicht zusammenpassen.
-3. **Nach jeder Änderung bauen und prüfen**: `bash src/build.sh` (schreibt nach `build/`; bricht ab bei fehlender Element-ID, JS-Fehler, ungleichen Versionen). Dazu vorhandene Tests laufen lassen und die betroffene Logik per Playwright gegen die echte `finanzdaten.json` prüfen.
+3. **Nach jeder Änderung bauen und prüfen**: `bash src/build.sh` (schreibt nach `build/`; bricht ab bei fehlender Element-ID, JS-Fehler, ungleichen Versionen). Dazu alle Tests in `tests/` laufen lassen und die betroffene Logik gegen die echte `finanzdaten.json` prüfen.
 4. **Namen auf Deutsch**, wie der bestehende Code. `betrag`, `kategorieId`, `topfStand`. Kein Mischmasch.
 5. **Keine Datenwanderung ohne Migration.** Jedes neue Feld bekommt in `migrate()` einen Standardwert. Die Datei ist über ein Jahr alt und darf nie kaputtgehen.
 6. **Ausgaben bleiben neutral.** Rot heisst «über dem Plan», Grün heisst «Geld herein». Nicht jede Ausgabe anmalen.

@@ -1,4 +1,4 @@
-# Architektur, Datenmodell, Rechenregeln (Stand 1.1.2)
+# Architektur, Datenmodell, Rechenregeln (Stand 1.2.0)
 
 ## Ordner, Dateien und Build
 
@@ -92,7 +92,7 @@ state = {
 
 Nur die, die man sucht. Alle global.
 
-**Helfer** `$`, `qsa`, `esc`, `fmtCHF`, `fmt0`, `fmtDatum`, `isoVon`, `addDays`, `addMonths`, `monatsEnde`, `rechne` (sicherer Ausdrucksparser für das Betragsfeld, kein eval), `calcHint`.
+**Helfer** `$`, `qsa`, `esc`, `einmal` (Klicksperre beim Speichern, sperrt über `SPEICHERT` alle Knöpfe), `sperre` (hängt sie nachträglich um einen Knopf), `formOeffnen`/`formSchliessen` (Bearbeiten-Formular aufklappen, hinscrollen, `.formtitel` setzen, aufleuchten), `rechnerZeile` (Knopfzeile unter dem Betragsfeld), `undoToast`, `fmtCHF`, `fmt0`, `fmtDatum`, `isoVon`, `addDays`, `addMonths`, `monatsEnde`, `rechne` (sicherer Ausdrucksparser für das Betragsfeld, kein eval), `calcHint`.
 
 **Aggregation und Budget** `eff`, `agg`, `aggInvalidate`, `liveSum`, `ausSplit`, `rollAt`, `budgetMonat`, `budgetJahr`, `istKat`, `jahrTotal`, `bM`, `bJ`, `bVer`, `budgetAktiv`.
 
@@ -100,7 +100,7 @@ Nur die, die man sucht. Alle global.
 
 **Konten und Ziele** (`phase34.js`) `planSplit`, `ampel`, `kontoWert`, `kontoEinstand`, `kontoGV`, `kontoPrognose`, `kontoVerlauf`, `svgVerlauf`, `renderKonten`, `kontoDetail`, `renderZiele`, `zielStand`, `vermoegenHeute`, `vermoegenPrognose`.
 
-**Serien** `serieTermin`, `serieTermine`, `naechsterTermin`, `faellige`, `buchungAusSerie`, `verbuchen`, `autoVerbuchen`, `geplanteSerien`, `serieAnpassen`, `renderAbos`.
+**Serien** `ueberNetto`, `renderUeberNetto`, `serieTermin`, `serieTermine`, `naechsterTermin`, `faellige`, `buchungAusSerie`, `verbuchen`, `autoVerbuchen`, `geplanteSerien`, `serieAnpassen`, `renderAbos`.
 
 **Plan und Muster** (`phase5.js`) `planLohn`, `planRechnung`, `renderPlan`, `muster`, `schonAbgedeckt`, `rhythmusWort`, `renderMuster`, `musterUebernehmen`.
 
@@ -110,7 +110,7 @@ Nur die, die man sucht. Alle global.
 
 **Import** `parseCSV`, `parseDatum`, `mfStart`, `mfRender`, `mfImport`, `APP_MAP` in `data.js`.
 
-**Persistenz** `loadData`, `saveData`, `schreibeDatei`, `bestaetigeSchreiben`, `parseTolerant`, `ensurePerm`, `idbGet`, `idbSet`, `updateFileStatus`, `updateBanner`, `tryAutoConnect`, `showMsg`, `diag`.
+**Persistenz** `loadData`, `saveData`, `msgBox`, `schreibeDatei`, `bestaetigeSchreiben`, `parseTolerant`, `ensurePerm`, `idbGet`, `idbSet`, `updateFileStatus`, `updateBanner`, `tryAutoConnect`, `showMsg`, `diag`.
 
 **Oberfläche** `showScreen`, `renderAll` (ruft alle Render-Funktionen), `neueVersion`, `renderMehr`, `mehrPane`.
 
@@ -119,6 +119,8 @@ Bildschirme: `#screen-erfassen`, `#screen-budget`, `#screen-konten`, `#screen-ab
 ## Persistenz und Konflikte
 
 Datei über die File System Access API, Handle in IndexedDB (`finanzapp_db`, Store `h`). Jeder IndexedDB-Zugriff hat ein hartes Timeout, weil `indexedDB.open()` unter `file://` in Chrome weder `success` noch `error` liefert und den Start blockieren würde. Sicherungskopie in localStorage unter `finanzapp_data`.
+
+Geschrieben wird seit 1.2.0 **kompaktes** JSON (`JSON.stringify(state)` ohne Einrückung): 684 KB werden zu 540 KB, entsprechend weniger zu schreiben und zurückzulesen. Der JSON-Export für den Menschen bleibt eingerückt.
 
 `saveData()` liest vor dem Schreiben die Datei und vergleicht `meta.rev` mit `bekannteRev`. Ist die Datei neuer, kommt ein `confirm`: schreiben und fremde Änderungen verwerfen, oder abbrechen und neu laden. Danach wird geschrieben und das Ergebnis geprüft.
 
@@ -137,9 +139,16 @@ Diese vier haben je einen halben Tag gekostet. Nicht erneut hineinlaufen.
 
 ## Tests
 
-Node-Skripte mit Playwright, keine Test-Bibliothek. Muster: Browser starten, `state` per `addInitScript` in localStorage legen, `page.evaluate` rechnet gegen die echten Funktionen, einfache `chk(name, bedingung, info)`-Zeilen, Exitcode 1 bei Fehlschlag. `page.on('pageerror')` sammelt JS-Fehler; die zählen immer als Fehlschlag.
+Node-Skripte, keine Test-Bibliothek. Geschrieben sind sie gegen die Playwright-API. Muster: Browser starten, `state` per `addInitScript` in localStorage legen, `page.evaluate` rechnet gegen die echten Funktionen, einfache `chk(name, bedingung, info)`-Zeilen, Exitcode 1 bei Fehlschlag. `page.on('pageerror')` sammelt JS-Fehler; die zählen immer als Fehlschlag.
 
-Playwright gibt es nur im Cloud-Container, nicht auf dem Rechner. Ablauf: `build/index.html` (dazu `build/sw.js`, `finanzdaten.json`) per `device_stage_files` holen, dort laufen lassen. Die echte Datei wird nur gelesen.
+**Wo sie laufen.** Playwright gibt es weder auf dem Rechner noch in der Shell daneben, und ohne `device_stage_files` kommt die echte Datei nicht in den Cloud-Container (sie soll ihn auch nicht brauchen). Seit 1.2.0 liegt darum `tests/pw-jsdom.js` bei: ein Playwright-Ersatz auf jsdom, der genau die benutzten Aufrufe abdeckt (`chromium.launch`, `newPage`, `goto`, `addInitScript`, `evaluate`, `waitForTimeout`, `on('pageerror'|'dialog')`) und `scrollIntoView`, `scrollTo` sowie `<dialog>` stummschaltet. Aufruf im Ordner:
+
+```
+npm install jsdom            # ausserhalb des Projektordners, z. B. im Home
+NODE_PATH=<dort>/node_modules node -r ./tests/pw-jsdom.js tests/t21-historie.js build/index.html finanzdaten.json
+```
+
+Steht ein Container mit echtem Playwright und den Dateien zur Verfügung, laufen dieselben Tests dort unverändert — dann ohne `-r`. Die echte Datei wird immer nur gelesen.
 
 | Test | Prüft | Aufruf |
 |---|---|---|
@@ -147,6 +156,7 @@ Playwright gibt es nur im Cloud-Container, nicht auf dem Rechner. Ablauf: `build
 | `t21-historie.js` | Buchungsjahre unabhängig von der Historie, Jahre ohne Buchungen aus ihr, Vermögensverlauf, leere Fächer ohne Historie | `node t21… <index.html> <finanzdaten.json>` |
 | `t22-sw-fehlerseite.js` | Service Worker legt keine 404 über die gute Fassung | `node t22… <sw.js>` |
 | `t23-neue-person.js` | Erststart ohne Datei: Startkategorien ohne Budget, keine persönlichen Namen, alle sechs Bildschirme | `node t23… <index.html>` |
+| `t24-bedienung.js` | 1.2.0: Rechnerzeile, `formOeffnen`, Nettoüberträge, Klicksperre (drei Tipps → eine Buchung), kompaktes JSON, Rückgängig | `node t24… <index.html> <finanzdaten.json>` |
 
 Erwartungswerte gehören nie in den Test, sondern werden aus der Datei gerechnet (Regel 8). Die Reihe t9–t17 ist verloren (sie lief gegen die private Datei); Ersatz ist Roadmap I1. Kurzfassung in `tests/LIESMICH.md`. Layout geprüft auf 360, 390, 430 und 820 px Breite.
 

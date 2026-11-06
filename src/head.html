@@ -262,6 +262,16 @@ dialog::backdrop{background:rgba(8,10,12,.55);}
 /* ---------- Hilfsklassen aus früheren Phasen ---------- */
 .calc{margin-top:5px;font-size:.8rem;color:var(--accent);font-weight:600;}
 .calc.bad{color:var(--bad);font-weight:500;}
+/* Rechnerzeile: nur sichtbar, solange das Betragsfeld den Fokus hat. */
+.calcbar{display:none;gap:5px;margin-top:6px;}
+.calcbar.an{display:flex;}
+.calcbar button{flex:1;min-width:0;min-height:40px;padding:4px 2px;font-size:1rem;
+  font-weight:600;background:var(--surface-2);border-radius:8px;}
+/* Kurzes Aufleuchten, wenn ein Bearbeiten-Knopf ein Formular oeffnet. */
+.flash{animation:aufleuchten 1.1s ease-out;}
+@keyframes aufleuchten{0%,35%{border-color:var(--accent-fill);background:var(--surface-2);}
+  100%{border-color:var(--border);background:var(--surface);}}
+.msg.undo{display:flex;align-items:center;gap:10px;justify-content:space-between;}
 .maprow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,46%);gap:6px;align-items:center;
   padding:8px 0;border-bottom:1px solid var(--border);}
 .maprow select{min-height:40px;padding:7px;font-size:.84rem;}
@@ -418,6 +428,7 @@ dialog::backdrop{background:rgba(8,10,12,.55);}
     <h2>Töpfe</h2>
     <p class="small">Ein Topf reserviert Geld innerhalb eines bestehenden Kontos, ohne dass du ein neues Konto brauchst. Was im Topf liegt, zählt nicht mehr als frei verfügbar.</p>
     <div id="topfListe"></div>
+    <h3 class="formtitel">Topf anlegen</h3>
     <div class="grid2" style="margin-top:10px">
       <div class="field"><label>Name</label><input type="text" id="tpName" placeholder="z. B. Steuern 2027"></div>
       <div class="field"><label>Konto</label><select id="tpKonto"></select></div>
@@ -439,7 +450,7 @@ dialog::backdrop{background:rgba(8,10,12,.55);}
     <h2>Sparziele</h2>
     <p class="small" id="sparInfo"></p>
     <div id="zieleListe"></div>
-    <h3>Ziel anlegen</h3>
+    <h3 class="formtitel">Ziel anlegen</h3>
     <div class="grid2">
       <div class="field"><label>Name</label><input type="text" id="zName" placeholder="z. B. Eigenkapital Haus"></div>
       <div class="field"><label>Zielbetrag</label><input type="number" step="100" inputmode="decimal" id="zBetrag"></div>
@@ -451,7 +462,7 @@ dialog::backdrop{background:rgba(8,10,12,.55);}
     <div class="btnrow"><button class="primary" id="btnSaveZiel">Ziel speichern</button><button id="btnCancelZiel" class="hidden">Abbrechen</button></div>
   </div>
   <details class="card fold"><summary>Kommende 90 Tage<span class="sum" id="kommSum"></span></summary><p class="small">Geplante Buchungen und Daueraufträge. Sie zählen erst am Ausführungstag.</p><div id="kommend"></div></details>
-  <details class="card fold"><summary>Konto anlegen / bearbeiten</summary>
+  <details class="card fold"><summary class="formtitel">Konto anlegen / bearbeiten</summary>
     
     <div class="field"><label>Name</label><input type="text" id="koName" placeholder="z. B. Depot"></div>
     <div class="grid2">
@@ -496,11 +507,11 @@ dialog::backdrop{background:rgba(8,10,12,.55);}
       <div class="num"><div class="small">pro Jahr</div><div class="mid" id="fixJahr">–</div></div>
     </div>
     <div class="kv"><span>Wiederkehrende Einnahmen</span><span class="pos num" id="fixEin">–</span></div>
-    <div class="kv"><span>Regelmässige Überträge (Sparen)</span><span class="num" id="fixUeb">–</span></div>
-    <p class="small">Überträge auf eigene Konten sind keine Kosten. Sie zählen hier separat, auch wenn du ihnen eine Kategorie gibst.</p>
+    <div id="fixUebBox"></div>
+    <p class="small">Überträge auf eigene Konten sind keine Kosten. Gezeigt wird je Konto, was pro Monat netto hineinfliesst – Zuflüsse minus Rückbuchungen.</p>
   </div>
   <div class="card">
-    <h2 id="serFormTitle">Dauerauftrag / Abo anlegen</h2>
+    <h2 id="serFormTitle" class="formtitel">Dauerauftrag / Abo anlegen</h2>
     <div class="seg" id="serSeg">
       <button data-mode="Ausgabe" class="on">Ausgabe</button>
       <button data-mode="Einnahme">Einnahme</button>

@@ -250,7 +250,7 @@ function renderZiele() {
   qsa('[data-ze]').forEach(el => el.onclick = () => {
     const z = state.ziele.find(z => z.id === el.dataset.ze); editingZiel = z.id;
     $('zName').value = z.name; $('zBetrag').value = z.betrag; $('zDatum').value = z.datum || ''; $('zKonto').value = z.kontoId || '';
-    $('btnCancelZiel').classList.remove('hidden');
+    $('btnCancelZiel').classList.remove('hidden'); formOeffnen('zName', z.name);
   });
   qsa('[data-zd]').forEach(el => el.onclick = async () => {
     if (!confirm('Ziel löschen?')) return;

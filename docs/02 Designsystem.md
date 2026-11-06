@@ -1,4 +1,4 @@
-# Designsystem «Spur» (Stand 1.0.1)
+# Designsystem «Spur» (Stand 1.2.0)
 
 Leitgedanke: Jede Zahl in dieser App ist eine Position auf einer Strecke. Ausgegebenes gegen Budget, heute gegen den Monat, Topf gegen Ziel. Das **Mass mit Heute-Marke** ist darum das einzige Schmuckelement, das es gibt. Alles andere ordnet sich unter.
 
@@ -62,6 +62,8 @@ Fällt die Schrift aus (offline vor dem ersten Laden), greift Helvetica Neue bez
 - Grundabstand 16 px (`--sp`).
 - Navigation mit gezeichneten Symbolen statt Emoji, aktiver Reiter mit einer Marke oben.
 - Verwaltungskarten auf dem Konten-Bildschirm sind `details`-Elemente und standardmässig zu. Der Bildschirm war vorher zu scroll-lastig.
+- **Rechnerzeile** (`.calcbar`, seit 1.2.0): sieben gleich breite Knöpfe `+ − × ÷ ( ) ⌫` direkt unter dem Betragsfeld, Fläche `--surface-2`, Radius 8 px, 40 px hoch. Sichtbar nur, solange das Feld den Fokus hat — sonst steht sie den ganzen Tag im Formular herum.
+- **Aufleuchten** (`.flash`, seit 1.2.0): öffnet ein Bearbeiten-Knopf ein Formular, läuft die Karte 1,1 s von `--surface-2` mit Akzentrand auf ihren Normalzustand zurück. Die Überschrift des Formulars (`.formtitel`) heisst dann «Bearbeiten: <Name>». Kein Schatten, keine Bewegung.
 
 ## Blickfang je Bildschirm
 

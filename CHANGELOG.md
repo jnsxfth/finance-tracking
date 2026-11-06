@@ -2,9 +2,52 @@
 
 Neueste oben. Pro Eintrag: Anlass, Änderungen, Tests, was der Nutzer tun muss.
 
-## Offen: 1.2.0 «Bedienung»
+## 1.2.0 · 06.11.2026 «Bedienung»
 
-Vorbereitet, nicht gebaut: A1 Rechnerzeile auf dem Handy, A2 `formOeffnen()` für alle Formulare, A3 Überträge in «Wiederk.» netto pro Konto, A4 Klicksperre beim Speichern und kompaktes JSON, G2 Rückgängig nach Löschen. Einzelheiten und Abnahmekriterien in `docs/05 Roadmap.md`.
+**Anlass.** Fünf Punkte, die im Alltag stören: der Rechner im Betragsfeld war auf dem Handy
+nicht erreichbar, Bearbeiten-Knöpfe füllten unsichtbare Formulare, die Übertragssumme in
+«Wiederk.» war aussagelos, langsames Speichern erzeugte Doppelbuchungen, und Löschen war
+endgültig. Nur Oberfläche und Fehlklicks; die Lese- und Schreiblogik bleibt unberührt.
+
+- **A1 Rechnerzeile.** `rechnerZeile()` legt unter `#txBetrag`, `#serBetrag` und `#planLohn`
+  eine Knopfzeile `+ − × ÷ ( ) ⌫`, sichtbar nur bei Fokus. Eingefügt wird per `setRangeText()`
+  an der Cursorposition; `mousedown`/`touchstart` werden abgefangen, damit die Tastatur offen
+  bleibt. `inputmode="decimal"` bleibt wie es war.
+- **A2 `formOeffnen(elId, titel)`.** Klappt das `details` auf, scrollt mittig hin, setzt die
+  Überschrift (`.formtitel`) auf «Bearbeiten: …» und lässt die Karte kurz aufleuchten.
+  Eingesetzt bei Konto, Dauerauftrag, Topf, Ziel, Buchung und beim Übernehmen eines Musters;
+  `formSchliessen()` setzt die Überschrift beim Abbrechen zurück. Geprüft: Kategorie, Gruppe
+  und Art liegen in Dialogen, haben das Problem also nicht; der Wert eines Anlagekontos hat
+  keinen Bearbeiten-Knopf.
+- **A3 Überträge netto.** `ueberNetto()` rechnet je Konto Zufluss minus Abfluss pro Monat,
+  `renderUeberNetto()` zeigt eine Zeile je Konto und Topf-Daueraufträge als Unterzeile.
+  Die alte Bruttosumme `#fixUeb` ist weg. Keine Farbe: ein Übertrag ist weder Einnahme noch
+  Ausgabe, das Vorzeichen genügt.
+- **A4 Punkt 1 und 2.** `einmal(el, fn)` schaltet den Knopf aus, zeigt «Speichere …» und
+  sperrt über `SPEICHERT` auch alle anderen; `sperre(id)` hängt das nachträglich um die
+  feststehenden Knöpfe, die pro Render neu gesetzten (Verbuchen, Alle verbuchen,
+  Überspringen, Löschen im Dialog) sind an ihrer Stelle umhüllt. `saveData()` schreibt
+  kompaktes JSON: 684 KB → 540 KB, entsprechend weniger zu schreiben und zurückzulesen.
+- **G2 Rückgängig.** `undoToast()` hält die gelöschte Buchung zehn Sekunden in einer
+  Variablen; ein Tipp legt sie mit derselben `id` zurück. Kein neues Feld im Datenmodell,
+  darum auch keine Migration. `showMsg()` löscht den Kasten nur noch, wenn seither nichts
+  Neues darin steht.
+
+**Tests.** Playwright gibt es weder auf dem Rechner noch in der Shell daneben, und
+`device_stage_files` stand in diesem Chat nicht zur Verfügung — die echte Datei konnte also
+nicht in den Cloud-Container. Ersatz: `tests/pw-jsdom.js`, ein Playwright-Ersatz auf jsdom,
+der genau die benutzten Aufrufe abdeckt (`node -r ./tests/pw-jsdom.js tests/<test>.js …`).
+Damit laufen t18, t21, t22, t23 unverändert und grün. Neu `t24-bedienung.js`: Rechnerzeile,
+formOeffnen, Nettoüberträge, drei schnelle Tipps auf «Verbuchen» → genau eine Buchung,
+kompaktes JSON, Rückgängig. jsdom liegt ausserhalb des Projektordners, im Repo bleibt nichts
+Fremdes liegen.
+
+**Was du tun musst.**
+1. Veröffentlichen: `git add -A && git commit && git push` (siehe `docs/04 Deployment.md`).
+2. Am Handy unter Mehr → Daten prüfen, dass dort 1.2.0 steht.
+3. Am Handy antesten: Rechnerzeile im Betragsfeld, zweimal schnell auf «Verbuchen»,
+   eine Buchung löschen und zurückholen, «Wiederk.» mit den Netto-Zeilen.
+4. Nächster Build ist 1.2.1 «Datei»: G0 + G3 + A4 Punkt 3 bis 5 + I2-Messung.
 
 ## 1.1.2 · 06.11.2026
 

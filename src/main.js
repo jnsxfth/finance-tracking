@@ -1,5 +1,5 @@
 /* ============================= Helfer ============================= */
-const APP_VERSION='1.1.2 · 06.11.2026';
+const APP_VERSION='1.2.0 · 06.11.2026';
 let SWREG=null;
 const $ = id => document.getElementById(id);
 const qsa = s => [...document.querySelectorAll(s)];
@@ -92,6 +92,62 @@ function migrate(){
   });
 }
 
+/* ============================= Klicksperre beim Speichern ============================= */
+// Ein saveData() dauert auf dem Handy spuerbar lange. Ohne Sperre legt ein zweiter Tipp
+// dieselbe Buchung erneut an (die Handler halten ihre Liste fest). Darum: Knopf aus,
+// Text "Speichere …", danach zurueck. SPEICHERT sperrt auch alle anderen Knoepfe.
+let SPEICHERT=false;
+async function einmal(el,fn){
+  if(SPEICHERT) return;
+  SPEICHERT=true;
+  const alt=el?el.textContent:'', altDis=el?el.disabled:false;
+  if(el){ el.disabled=true; el.textContent='Speichere …'; }
+  try{ return await fn(); }
+  finally{ SPEICHERT=false; if(el){ el.disabled=altDis; el.textContent=alt; } }
+}
+// Legt die Sperre nachtraeglich um einen Knopf, dessen onclick schon gesetzt ist.
+function sperre(id){
+  const el=$(id); if(!el||el._sperre) return;
+  const fn=el.onclick; if(typeof fn!=='function') return;
+  el._sperre=true; el.onclick=()=>einmal(el,()=>fn.call(el));
+}
+
+/* ============================= Formular sichtbar oeffnen ============================= */
+// Bearbeiten fuellte bisher ein Formular, das zugeklappt oder ausserhalb des Bildschirms
+// lag. formOeffnen() klappt auf, scrollt hin, betitelt (.formtitel) und laesst aufleuchten.
+function formOeffnen(elId,titel){
+  const el=$(elId); if(!el) return;
+  const d=el.closest('details'); if(d) d.open=true;
+  const box=el.closest('.card')||d||el;
+  const t=box.querySelector('.formtitel');
+  if(t){ if(t._orig===undefined) t._orig=t.textContent; if(titel) t.textContent='Bearbeiten: '+titel; }
+  box.scrollIntoView({block:'center'});
+  box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash');
+  setTimeout(()=>box.classList.remove('flash'),1200);
+}
+function formSchliessen(elId){
+  const el=$(elId); if(!el) return;
+  const box=el.closest('.card')||el.closest('details')||el;
+  const t=box.querySelector('.formtitel');
+  if(t&&t._orig!==undefined) t.textContent=t._orig;
+}
+
+/* ============================= Rueckgaengig nach Loeschen ============================= */
+// Die geloeschte Buchung lebt zehn Sekunden in einer Variablen weiter. Kein Feld im
+// Datenmodell: nach Ablauf oder Neuladen ist sie weg.
+let RUECK=null;
+function undoToast(text,fn){
+  if(RUECK) clearTimeout(RUECK.timer);
+  const box=msgBox();
+  box.innerHTML='<div class="msg ok undo"><span>'+esc(text)+'</span>'+
+    '<button class="small-btn" data-undo="1">Rückgängig</button></div>';
+  const timer=setTimeout(()=>{ if(RUECK&&RUECK.timer===timer){ RUECK=null; box.innerHTML=''; } },10000);
+  RUECK={timer};
+  box.querySelector('[data-undo]').onclick=async()=>{
+    clearTimeout(timer); RUECK=null; box.innerHTML=''; await fn();
+  };
+}
+
 /* ============================= Rechner im Betragsfeld ============================= */
 // Erlaubt "30+10+5.50" oder "90-30-10" direkt im Betragsfeld. Kein eval: ein kleiner
 // Parser, der nur Zahlen und + - * / ( ) kennt und sonst null liefert.
@@ -135,6 +191,34 @@ function calcHint(inputId, hintId){
   el.addEventListener('input',upd);
   el.addEventListener('blur',()=>{ const v=rechne(el.value); if(v!==null && /[+*/]/.test(el.value)){ el.value=String(v); upd(); } });
   el._calcUpd=upd;
+}
+// A1: Android zeigt bei inputmode="decimal" nur Ziffern, Punkt und Minus; + * / ( ) sind
+// nicht eintippbar, rechne() damit auf dem Handy unerreichbar. Die Zeile fuegt die Zeichen
+// an der Cursorposition ein. mousedown/touchstart werden abgefangen, sonst verliert das
+// Feld den Fokus und die Tastatur klappt zu.
+function rechnerZeile(inputId){
+  const el=$(inputId); if(!el||el._rz) return; el._rz=true;
+  const bar=document.createElement('div'); bar.className='calcbar';
+  [['+','+'],['−','-'],['×','*'],['÷','/'],['(','('],[')',')'],['⌫','']].forEach(([label,wert])=>{
+    const b=document.createElement('button');
+    b.type='button'; b.textContent=label; b.tabIndex=-1;
+    b.addEventListener('mousedown',e=>e.preventDefault());
+    b.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});
+    b.addEventListener('click',()=>{
+      const a=el.selectionStart==null?el.value.length:el.selectionStart;
+      const z=el.selectionEnd==null?a:el.selectionEnd;
+      if(wert===''){
+        if(a!==z) el.setRangeText('',a,z,'end');
+        else if(a>0) el.setRangeText('',a-1,a,'end');
+      } else el.setRangeText(wert,a,z,'end');
+      el.dispatchEvent(new Event('input',{bubbles:true}));
+      el.focus();
+    });
+    bar.appendChild(b);
+  });
+  el.parentNode.insertBefore(bar,el.nextSibling);
+  el.addEventListener('focus',()=>bar.classList.add('an'));
+  el.addEventListener('blur',()=>setTimeout(()=>{ if(document.activeElement!==el) bar.classList.remove('an'); },150));
 }
 
 /* ============================= Buchungs-Logik ============================= */
@@ -706,8 +790,17 @@ function openTx(id){
     kv('Gruppe',k&&k.gruppe)+kv('Kategorie',k&&k.kategorie)+kv('Notiz',t.notiz)+
     (t.serieId?kv('Herkunft','Dauerauftrag'):'');
   $('dlgEdit').onclick=()=>{ $('txDlg').close(); editTx(id); };
-  $('dlgDel').onclick=async()=>{ if(!confirm('Buchung wirklich löschen?')) return;
-    state.transaktionen=state.transaktionen.filter(x=>x.id!==id); $('txDlg').close(); await saveData(); renderAll(); };
+  $('dlgDel').onclick=()=>einmal($('dlgDel'),async()=>{
+    if(!confirm('Buchung wirklich löschen?')) return;
+    const weg=state.transaktionen.find(x=>x.id===id); if(!weg) return;
+    state.transaktionen=state.transaktionen.filter(x=>x.id!==id);
+    $('txDlg').close(); await saveData(); renderAll();
+    undoToast('Buchung gelöscht.', ()=>einmal(null,async()=>{
+      if(state.transaktionen.some(x=>x.id===weg.id)) return;
+      state.transaktionen.push(weg); await saveData(); renderAll();
+      showMsg('ok','Buchung wiederhergestellt.');
+    }));
+  });
   $('txDlg').showModal();
 }
 $('dlgClose').onclick=()=>$('txDlg').close();
@@ -720,7 +813,7 @@ function editTx(id){
   $('txKonto').value=t.konto; if(t.kontoNach) $('txKontoNach').value=t.kontoNach;
   $('txTags').value=(t.tags||[]).join(', ');
   $('formTitle').textContent='Buchung bearbeiten'; $('btnCancelEdit').classList.remove('hidden');
-  pruefeDatum(); showScreen('erfassen');
+  pruefeDatum(); showScreen('erfassen'); formOeffnen('txBetrag');
 }
 function renderFaellig(){
   const f=faellige();
@@ -730,17 +823,18 @@ function renderFaellig(){
     '<button class="small-btn primary" data-fb="'+i+'">Verbuchen</button>'+
     '<button class="small-btn" data-fe="'+i+'">Anpassen</button>'+
     '<button class="small-btn" data-fs="'+i+'">Überspringen</button></div>')).join('');
-  qsa('[data-fb]').forEach(el=>el.onclick=async()=>{ await verbuchen([f[+el.dataset.fb]]); showMsg('ok','Verbucht.'); });
+  qsa('[data-fb]').forEach(el=>el.onclick=()=>einmal(el,async()=>{ await verbuchen([f[+el.dataset.fb]]); showMsg('ok','Verbucht.'); }));
   // Anpassen: Werte ins Erfassen-Formular legen, Termin merken, noch nichts speichern.
   qsa('[data-fe]').forEach(el=>el.onclick=()=>{ const x=f[+el.dataset.fe]; serieAnpassen(x.serie,x.datum); });
   // Überspringen: Termin dauerhaft als erledigt markieren, ohne Buchung.
-  qsa('[data-fs]').forEach(el=>el.onclick=async()=>{
+  qsa('[data-fs]').forEach(el=>el.onclick=()=>einmal(el,async()=>{
     const x=f[+el.dataset.fs];
     if(!confirm('Termin '+fmtDatum(x.datum)+' von „'+x.serie.titel+'“ überspringen?\n\nEs wird keine Buchung erstellt. Rückgängig machen kannst du das im Reiter „Wiederk.“.')) return;
     x.serie.skip=[...(x.serie.skip||[]), x.datum];
     await saveData(); renderAll(); showMsg('ok','Termin übersprungen.');
-  });
-  $('btnFaelligAlle').onclick=async()=>{ const n=await verbuchen(f); showMsg('ok',n+' Buchungen erstellt.'); };
+  }));
+  $('btnFaelligAlle').onclick=()=>einmal($('btnFaelligAlle'),async()=>{
+    const n=await verbuchen(f); showMsg('ok',n+' Buchungen erstellt.'); });
 }
 // Fällige Buchung vor dem Verbuchen bearbeiten: Formular füllen, Termin vormerken.
 function serieAnpassen(s,d){
@@ -865,14 +959,14 @@ $('btnSaveKonto').onclick=async()=>{
 };
 function resetKontoForm(){
   editingKonto=null; $('koName').value=''; $('koStart').value=''; $('koTyp').value='bank'; $('koTyp').onchange();
-  $('koDatum').value=TODAY; $('btnCancelKonto').classList.add('hidden');
+  $('koDatum').value=TODAY; $('btnCancelKonto').classList.add('hidden'); formSchliessen('koName');
 }
 $('btnCancelKonto').onclick=resetKontoForm;
 function editKonto(id){
   const a=state.konten.find(a=>a.id===id); if(!a) return;
   editingKonto=id; $('koName').value=a.name; $('koTyp').value=a.typ; $('koTyp').onchange();
   $('koStart').value=a.startsaldo||''; $('koDatum').value=a.startdatum||TODAY;
-  $('btnCancelKonto').classList.remove('hidden'); window.scrollTo(0,0);
+  $('btnCancelKonto').classList.remove('hidden'); formOeffnen('koName',a.name);
 }
 async function delKonto(id){
   const a=state.konten.find(a=>a.id===id);
@@ -943,7 +1037,8 @@ $('btnSaveZiel').onclick=async()=>{
   else state.ziele.push(Object.assign({id:'z'+Date.now()},o));
   resetZielForm(); await saveData(); renderAll(); showMsg('ok','Ziel gespeichert.');
 };
-function resetZielForm(){ editingZiel=null; $('zName').value=''; $('zBetrag').value=''; $('zDatum').value=''; $('btnCancelZiel').classList.add('hidden'); }
+function resetZielForm(){ editingZiel=null; $('zName').value=''; $('zBetrag').value=''; $('zDatum').value='';
+  $('btnCancelZiel').classList.add('hidden'); formSchliessen('zName'); }
 $('btnCancelZiel').onclick=resetZielForm;
 
 /* --- Vermögensverlauf --- */
@@ -1023,7 +1118,7 @@ function resetSerieForm(){
   editingSerie=null; $('serTitel').value=''; $('serBetrag').value=''; $('serEnde').value=''; $('serRueck').checked=false;
   if($('serTopf')) $('serTopf').value='';
   $('serN').value=1; $('serEinheit').value='M'; $('serAuto').checked=true;
-  $('serFormTitle').textContent='Dauerauftrag / Abo anlegen'; $('btnCancelSerie').classList.add('hidden');
+  formSchliessen('serTitel'); $('btnCancelSerie').classList.add('hidden');
 }
 $('btnCancelSerie').onclick=resetSerieForm;
 function editSerie(id){
@@ -1035,21 +1130,49 @@ function editSerie(id){
   const k=katById(s.kategorieId);
   $('serGruppe').value=k?k.gruppe:''; fillGK('ser',serMode); $('serKategorie').value=s.kategorieId||'';
   $('serKonto').value=s.konto; if(s.kontoNach) $('serKontoNach').value=s.kontoNach;
-  $('serFormTitle').textContent='Dauerauftrag bearbeiten'; $('btnCancelSerie').classList.remove('hidden');
-  window.scrollTo(0,0);
+  $('btnCancelSerie').classList.remove('hidden'); formOeffnen('serTitel',s.titel);
 }
 function rhythmusText(s){
   const e={T:'Tage',W:'Wochen',M:'Monate',J:'Jahre'}[s.einheit];
   const einz={T:'täglich',W:'wöchentlich',M:'monatlich',J:'jährlich'}[s.einheit];
   return (+s.n===1)?einz:('alle '+s.n+' '+e);
 }
+// A3: Uebertraege brutto zu summieren ist aussagelos – Hin- und Rueckbuchung zwischen
+// eigenen Konten zaehlen beide mit. Darum je Konto der Nettozufluss pro Monat: was
+// hineinlaeuft minus was abfliesst. Toepfe stehen als Unterzeile darunter.
+// Keine Farbe: ein Uebertrag ist weder Einnahme noch Ausgabe, das Vorzeichen genuegt.
+function ueberNetto(serien){
+  const kto={};
+  const bucht=(name,betrag,topfId)=>{
+    if(!name) return;
+    const e=kto[name]||(kto[name]={netto:0,toepfe:{}});
+    e.netto+=betrag;
+    if(topfId){ const t=topfById(topfId); if(t) e.toepfe[t.name]=(e.toepfe[t.name]||0)+betrag; }
+  };
+  serien.filter(s=>s.typ==='Übertrag').forEach(s=>{
+    const mb=serieMonatsBetrag(s);
+    bucht(s.kontoNach,mb,s.topfId);
+    bucht(s.konto,-mb,null);
+  });
+  return Object.keys(kto).map(name=>({name,netto:kto[name].netto,toepfe:kto[name].toepfe}))
+    .filter(x=>Math.abs(x.netto)>=0.005).sort((a,b)=>b.netto-a.netto);
+}
+function renderUeberNetto(aktiv){
+  const vz=v=>(v>0?'+':'−')+fmtCHF(Math.abs(v))+' / Mt';
+  const rows=ueberNetto(aktiv);
+  $('fixUebBox').innerHTML = rows.length ? rows.map(r=>
+    '<div class="kv"><span>Überträge netto · '+esc(r.name)+'</span><span class="num">'+vz(r.netto)+'</span></div>'+
+    Object.keys(r.toepfe).filter(n=>Math.abs(r.toepfe[n])>=0.005).map(n=>
+      '<div class="kv small"><span>davon Topf '+esc(n)+'</span><span class="num">'+vz(r.toepfe[n])+'</span></div>').join('')
+  ).join('') : '<div class="kv"><span>Regelmässige Überträge</span><span class="num">–</span></div>';
+}
 function renderAbos(){
   const aktiv=state.serien.filter(s=>s.aktiv!==false);
   const mt=f=>aktiv.filter(f).reduce((s,x)=>s+serieMonatsBetrag(x),0);
-  const mAus=mt(s=>s.typ==='Ausgabe'), mEin=mt(s=>s.typ==='Einnahme'), mUeb=mt(s=>s.typ==='Übertrag');
+  const mAus=mt(s=>s.typ==='Ausgabe'), mEin=mt(s=>s.typ==='Einnahme');
   $('fixMonat').textContent=fmtCHF(mAus); $('fixJahr').textContent=fmtCHF(mAus*12);
   $('fixEin').textContent=mEin?fmtCHF(mEin)+' / Mt':'–';
-  $('fixUeb').textContent=mUeb?fmtCHF(mUeb)+' / Mt':'–';
+  renderUeberNetto(aktiv);
   $('serList').innerHTML=state.serien.map(s=>{
     const k=katById(s.kategorieId), next=naechsterTermin(s);
     const neg=+s.betrag<0;
@@ -1767,6 +1890,12 @@ $('txDatum').value=TODAY; $('koDatum').value=TODAY; $('serStart').value=TODAY; $
 /*__PHASE34__*/
 /*__PHASE5__*/
 calcHint('txBetrag','txCalc'); calcHint('serBetrag','serCalc');
+rechnerZeile('txBetrag'); rechnerZeile('serBetrag'); rechnerZeile('planLohn');
+// A4: Knoepfe, die speichern, gegen Doppeltippen sperren. Die Handler bleiben, wo sie
+// stehen; hier werden sie einmalig umhuellt. Pro Render neu gesetzte Knoepfe (Verbuchen,
+// Ueberspringen, Alle verbuchen, Loeschen im Dialog) sind an ihrer Stelle gesperrt.
+['btnSaveTx','btnSaveKonto','btnSaveWert','btnSaveZiel','btnSaveSerie','btnSaveTopf',
+ 'btnSaveCat','btnDelCat','btnSaveGrp','btnDelGrp','btnSaveArt','btnDelArt'].forEach(sperre);
 $('txBetrag').addEventListener('input',splitSumme);
 fillJahrMonatSelects(); migrate(); $('koTyp').onchange(); setMode('Ausgabe'); setSerMode('Ausgabe');
 // Als App installierbar nur, wenn die Seite über https ausgeliefert wird.

@@ -276,7 +276,7 @@ function renderToepfe() {
     editingTopf = t.id; $('tpName').value = t.name; $('tpKonto').value = t.kontoId;
     $('tpStart').value = t.start || ''; $('tpZiel').value = t.ziel || '';
     $('btnCancelTopf').classList.remove('hidden');
-    $('tpName').scrollIntoView({ block: 'center' });
+    formOeffnen('tpName', t.name);
   });
   qsa('[data-tpd]').forEach(el => el.onclick = async () => {
     const t = topfById(el.dataset.tpd); if (!t) return;
@@ -292,7 +292,7 @@ function renderToepfe() {
 function resetTopfForm() {
   editingTopf = null;
   $('tpName').value = ''; $('tpStart').value = ''; $('tpZiel').value = '';
-  $('btnCancelTopf').classList.add('hidden');
+  $('btnCancelTopf').classList.add('hidden'); formSchliessen('tpName');
 }
 $('btnCancelTopf').onclick = resetTopfForm;
 

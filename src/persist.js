@@ -166,7 +166,9 @@ async function saveData(){
     }catch(e){ /* Datei nicht lesbar: unten greift die normale Fehlerbehandlung */ }
   }
   state.meta = {letzteAenderung: new Date().toISOString(), rev: bekannteRev+1, geraet: GERAET};
-  const json = JSON.stringify(state, null, 2);
+  // Kompakt statt eingerueckt: rund 16 % weniger schreiben und zuruecklesen.
+  // Die Datei ist nicht zum Lesen von Hand gedacht, parseTolerant() ist davon unabhaengig.
+  const json = JSON.stringify(state);
   if(fileHandle){
     lsSet('finanzapp_data',json); // lokale Sicherheitskopie
     const p = await ensurePerm(fileHandle,'readwrite');
@@ -226,12 +228,20 @@ function updateBanner(){
     ? 'Android hat die Freigabe für „'+name+'“ beim Neustart vergessen. Bis zum Verbinden siehst du den zuletzt lokal gesicherten Stand.'
     : 'Schreiben in „'+name+'“ ist fehlgeschlagen. Neu verbinden, damit deine Änderungen in die Datei kommen.';
 }
-function showMsg(type,text){
+// Der Kasten fuer Meldungen wird zur Laufzeit erzeugt (darum die Ausnahme fuer
+// toastMsg im Build). undoToast() in main.js benutzt denselben Kasten.
+function msgBox(){
   let m = document.getElementById('toastMsg');
   if(!m){ m=document.createElement('div'); m.id='toastMsg'; m.style.position='fixed'; m.style.bottom='80px';
     m.style.left='16px'; m.style.right='16px'; m.style.zIndex=20; document.body.appendChild(m); }
-  m.innerHTML = '<div class="msg '+type+'">'+text+'</div>';
-  setTimeout(()=>{ if(m) m.innerHTML=''; }, 7000);
+  return m;
+}
+function showMsg(type,text){
+  const m = msgBox();
+  const html = '<div class="msg '+type+'">'+text+'</div>';
+  m.innerHTML = html;
+  // Nur loeschen, wenn seither nichts Neues im Kasten steht (etwa ein Rueckgaengig-Hinweis).
+  setTimeout(()=>{ if(m.innerHTML===html) m.innerHTML=''; }, 7000);
 }
 
 document.getElementById('btnConnNow').onclick = ()=>{

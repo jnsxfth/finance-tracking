@@ -1,8 +1,8 @@
-# Funktionsumfang, Grenzen, offene Punkte (Stand 1.1.2, 06.11.2026)
+# Funktionsumfang, Grenzen, offene Punkte (Stand 1.2.0, 06.11.2026)
 
 ## Was die App kann
 
-**Erfassen.** Betrag als Blickfang mit Rechner im Feld (`30+10+5.50`). Belege aufteilen: Gesamtbetrag oben, Teilbeträge auf weitere Kategorien, Knopf «Rest» füllt die Differenz. Vorlagen, Tags, Notizen, Suche, einklappbarer Filter.
+**Erfassen.** Betrag als Blickfang mit Rechner im Feld (`30+10+5.50`), auf dem Handy über eine Knopfzeile `+ − × ÷ ( ) ⌫` unter dem Feld. Eine gelöschte Buchung lässt sich zehn Sekunden lang zurückholen. Knöpfe, die speichern, sind während des Speicherns gesperrt, darum erzeugt ein zweiter Tipp keine zweite Buchung. Belege aufteilen: Gesamtbetrag oben, Teilbeträge auf weitere Kategorien, Knopf «Rest» füllt die Differenz. Vorlagen, Tags, Notizen, Suche, einklappbarer Filter.
 
 **Geldfluss.** Jede Kategorie gehört zu einer **Art**, die ihre Rolle bestimmt: planbar, variabel oder Rücklage, dazu der Schalter «zählt als Ausgabe». Arten sind frei definierbar; Steuern laufen getrennt von Sparen und von Vorsorge. Der Blickfang im Budget heisst «noch frei», Verplantes ist schon abgezogen.
 
@@ -10,7 +10,7 @@
 
 **Konten und Töpfe.** Bankkonten und Anlagekonten (Wert von Hand erfassen, Gewinn und Verlust wird gerechnet). Töpfe reservieren Geld innerhalb eines Kontos, etwa Notgroschen oder Steuern, ohne eigenes Bankkonto. Zwölf-Monats-Verlauf je Konto, Karten eingeklappt.
 
-**Daueraufträge** mit automatischem oder bestätigtem Verbuchen, einzelne Termine anpassen oder überspringen.
+**Daueraufträge** mit automatischem oder bestätigtem Verbuchen, einzelne Termine anpassen oder überspringen. Überträge erscheinen je Konto netto pro Monat (Zufluss minus Rückbuchung), Topf-Daueraufträge als Unterzeile.
 
 **Rückerstattungen und Gegenbuchungen.** Eine Rückerstattung senkt nur die Ausgaben ihrer eigenen Kategorie. Eine Gegenbuchung holt Geld aus einer Kategorie zurück, wenn zwischen eigenen Konten umgeschichtet wird: 100 aufs Depot und 80 vom Sparkonto zurück sind netto 20 gespart.
 
@@ -32,6 +32,8 @@ Kursabfragen (verworfen, weil jede Quelle entweder Geld kostet oder unzuverläss
 - Kontoverlauf beginnt beim Stichtag des Kontos; davor gibt es keine Daten.
 - Archivo braucht beim ersten Öffnen Netz. Danach liegt sie im Browser-Cache.
 - Eine Rückerstattung ohne passende Ausgabe im selben Monat schreibt keinem Budget etwas gut und wird separat ausgewiesen.
+- Rückgängig gilt nur für die zuletzt gelöschte Buchung und nur zehn Sekunden lang; danach hilft nur eine Sicherung.
+- Speichern dauert auf dem Handy weiterhin spürbar lange. Gemessen und beschleunigt wird in 1.2.1 (A4 Punkt 3 bis 5).
 - Die Dateifreigabe verfällt auf Android bei jedem App-Start. Nicht lösbar, siehe `01 Architektur.md`.
 
 ## Was ich noch selbst in der App tun muss
@@ -57,4 +59,4 @@ v14 bis 1.0.0 war die Roadmap in fünf Phasen: Arten und Töpfe und Geldfluss, f
 
 1.0.1 hat ausschliesslich die Android-Schreibprüfung korrigiert, siehe `01 Architektur.md`, Abschnitt Android-Fallen.
 
-Ab 1.1.0 siehe `CHANGELOG.md`.
+Ab 1.1.0 siehe `CHANGELOG.md`. 1.2.0 war der Bedienungs-Build: Rechnerzeile, sichtbares Bearbeiten, Nettoüberträge, Klicksperre, Rückgängig.
