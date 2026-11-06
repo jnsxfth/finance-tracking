@@ -36,7 +36,11 @@ jobs:
       - name: Bauen und prüfen
         run: bash src/build.sh
 
+      # enablement schaltet Pages notfalls selbst ein. Ohne das scheitert der erste Lauf
+      # mit "Get Pages site failed", wenn er vor dem Umstellen auf GitHub Actions startet.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build
