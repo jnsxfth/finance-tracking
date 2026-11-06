@@ -1,0 +1,4 @@
+# Zeilenenden im Repo immer LF. Ohne das wandelt Git unter Windows sie in CRLF,
+# und build.sh laeuft im Pages-Workflow (Linux) nicht mehr.
+* text=auto eol=lf
+*.png binary
