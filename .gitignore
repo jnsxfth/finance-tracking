@@ -1,0 +1,8 @@
+# Echte Finanzdaten und Sicherungen gehören nie ins Repo
+finanzdaten*.json
+sicherungen/
+
+# Kein Betriebssystem-Beiwerk
+Thumbs.db
+desktop.ini
+.DS_Store

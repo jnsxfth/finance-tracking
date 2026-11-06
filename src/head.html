@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finanz-Tracker</title>
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191D21" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+/* =====================================================================
+   Spur – Designsystem
+   Jede Zahl in dieser App ist eine Position auf einer Strecke: Ausgegebenes
+   gegen Budget, heute gegen den Monat, Topf gegen Ziel. Das Mass mit
+   Heute-Marke ist darum das einzige Schmuckelement, das es hier gibt.
+   Farbe bedeutet etwas oder wird weggelassen: Grün ist Geld herein,
+   Rot ist über dem Plan. Normale Ausgaben bleiben neutral, sonst sieht
+   ein Haushaltsbuch aus wie eine Dauerwarnung.
+   ===================================================================== */
+:root{
+  --bg:#EEF0F2; --surface:#FFFFFF; --surface-2:#F2F5F7; --border:#D7DDE2;
+  --text:#14181C; --text-dim:#5C6670;
+  --accent:#145FA8; --accent-fill:#1A6FC4; --accent-text:#FFFFFF;
+  --good:#16754F; --bad:#B23327; --warn:#A06100; --plan:#6B4FA0;
+  --track:#E2E6EA;
+  --r-ctl:10px; --r-card:14px;
+  --sp:16px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#101316; --surface:#191D21; --surface-2:#232A31; --border:#2E353C;
+    --text:#E9EDF0; --text-dim:#97A2AC;
+    --accent:#6EB3F5; --accent-fill:#3D8FE0; --accent-text:#07172B;
+    --good:#4ECB8F; --bad:#F07A6C; --warn:#E8A93F; --plan:#AD9BEE;
+    --track:#2A3139;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box;}
+html{font-size:16px;-webkit-text-size-adjust:100%;}
+body{margin:0;background:var(--bg);color:var(--text);padding-bottom:88px;overflow-x:hidden;
+  font-family:Archivo,"Helvetica Neue",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-variation-settings:"wdth" 100;
+  font-size:.94rem;line-height:1.45;-webkit-font-smoothing:antialiased;}
+
+/* ---------- Kopf ---------- */
+header{padding:11px 16px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  position:sticky;top:0;z-index:9;}
+.brand{display:flex;align-items:center;gap:9px;min-width:0;}
+.brand svg{flex:none;}
+header h1{font-size:1.02rem;margin:0;font-weight:600;letter-spacing:-.012em;white-space:nowrap;}
+.chip{font-size:.78rem;padding:5px 11px;border-radius:999px;border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text-dim);cursor:pointer;white-space:nowrap;font-weight:500;}
+.chip.good{color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,transparent);}
+.chip.bad{color:var(--bad);border-color:var(--bad);}
+.chip.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 50%,transparent);}
+
+/* ---------- Bedienelemente ---------- */
+button,select,input,textarea{font:inherit;font-family:inherit;}
+button{border:1px solid var(--border);background:var(--surface);color:var(--text);
+  padding:10px 15px;min-height:44px;border-radius:var(--r-ctl);cursor:pointer;
+  font-size:.9rem;font-weight:550;transition:background .12s,border-color .12s;}
+button:hover{background:var(--surface-2);}
+button.primary{background:var(--accent-fill);color:var(--accent-text);border-color:transparent;font-weight:650;}
+button.primary:hover{filter:brightness(1.06);}
+button.danger{color:var(--bad);}
+button.small-btn{min-height:34px;padding:5px 11px;font-size:.82rem;border-radius:8px;}
+button:active{transform:translateY(1px);}
+:focus-visible{outline:2px solid var(--accent-fill);outline-offset:2px;}
+
+/* ---------- Navigation ---------- */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;background:var(--surface);
+  border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);}
+nav button{flex:1;border:none;border-radius:0;background:transparent;padding:8px 1px 7px;min-height:60px;
+  font-size:.66rem;font-weight:550;color:var(--text-dim);display:flex;flex-direction:column;
+  align-items:center;gap:4px;letter-spacing:-.005em;}
+nav button:hover{background:transparent;color:var(--text);}
+nav button svg{width:21px;height:21px;display:block;}
+nav button.active{color:var(--text);}
+nav button.active svg{color:var(--accent);}
+nav button{position:relative;}
+nav button.active::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:24px;height:2px;background:var(--accent-fill);border-radius:0 0 2px 2px;}
+
+main{padding:14px 14px 24px;max-width:640px;margin:0 auto;}
+.screen{display:none;} .screen.active{display:block;}
+
+/* ---------- Flächen ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);
+  padding:16px;margin-bottom:12px;}
+.card h2{font-size:.95rem;margin:0 0 12px;font-weight:600;letter-spacing:-.008em;}
+.card h3{font-size:.86rem;margin:16px 0 6px;color:var(--text-dim);font-weight:600;}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
+select{max-width:100%;min-width:0;}
+
+/* ---------- Formulare ---------- */
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:.82rem;font-weight:550;color:var(--text-dim);margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;padding:11px 12px;min-height:44px;
+  border:1px solid var(--border);border-radius:var(--r-ctl);background:var(--surface-2);
+  color:var(--text);font-size:1rem;}
+.field input:focus,.field select:focus,.field textarea:focus{background:var(--surface);}
+.field textarea{min-height:62px;resize:vertical;}
+.check{display:flex;align-items:center;gap:9px;margin-bottom:12px;font-size:.92rem;}
+.check input{width:20px;height:20px;flex:none;accent-color:var(--accent-fill);}
+.check.box{border:1px solid var(--border);background:var(--surface-2);border-radius:var(--r-ctl);
+  padding:11px 12px;align-items:flex-start;}
+.check.box input:checked ~ span{font-weight:600;color:var(--text);}
+.seg{display:flex;gap:3px;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--r-ctl);padding:3px;margin-bottom:14px;}
+.seg button{flex:1;border:none;border-radius:7px;background:transparent;font-weight:550;
+  font-size:.88rem;padding:9px 2px;min-height:38px;color:var(--text-dim);}
+.seg button:hover{background:transparent;color:var(--text);}
+.seg button.on{background:var(--surface);color:var(--text);font-weight:650;
+  box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ---------- Zahlen und Zustände ---------- */
+.pos{color:var(--good);} .neg{color:var(--bad);} .dim{color:var(--text-dim);} .planc{color:var(--plan);}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.small{font-size:.82rem;color:var(--text-dim);line-height:1.4;}
+.hidden{display:none !important;}
+.big{font-size:2.5rem;font-weight:700;font-variant-numeric:tabular-nums;
+  font-variation-settings:"wdth" 112;letter-spacing:-.022em;line-height:1.05;}
+.mid{font-size:1.06rem;font-weight:650;font-variant-numeric:tabular-nums;
+  font-variation-settings:"wdth" 106;letter-spacing:-.01em;}
+
+/* ---------- Mass: das Leitmotiv ---------- */
+.bar{position:relative;height:8px;border-radius:4px;background:var(--track);overflow:hidden;}
+.bar .f{height:100%;background:var(--good);border-radius:4px;transition:width .25s ease;}
+.bar .f.warn{background:var(--warn);} .bar .f.over{background:var(--bad);} .bar .f.none{background:var(--accent-fill);}
+/* Heute-Marke: wo im Monat du gerade stehst */
+.bar .tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text);opacity:.8;border-radius:1px;}
+.brow{margin-bottom:10px;}
+/* Blickfang: die eine Zahl, die zählt, auf ihrem Mass */
+.field.amt input{font-size:1.9rem;font-weight:650;font-variant-numeric:tabular-nums;
+  font-variation-settings:"wdth" 108;letter-spacing:-.02em;min-height:62px;padding:8px 14px;}
+.field.amt input::placeholder{font-weight:400;opacity:.45;}
+.hero{padding:2px 0 4px;}
+.hero .hv{font-size:2.6rem;font-weight:700;font-variant-numeric:tabular-nums;
+  font-variation-settings:"wdth" 113;letter-spacing:-.028em;line-height:1.02;}
+.hero .hk{font-size:.86rem;color:var(--text-dim);margin:2px 0 14px;}
+.hero .bar{height:10px;border-radius:5px;}
+.hero .hf{display:flex;justify-content:space-between;gap:10px;font-size:.8rem;
+  color:var(--text-dim);margin-top:8px;}
+.hero .hf b{color:var(--text);font-variant-numeric:tabular-nums;font-weight:600;}
+/* Zweites Segment auf demselben Mass: was im Rest des Monats schon feststeht */
+.bar .p{position:absolute;top:0;bottom:0;background:var(--accent-fill);opacity:.42;}
+.warnc{color:var(--warn);}
+/* Konten: Zeile aufklappbar, Details erst auf Tipp */
+.acc{border-bottom:1px solid var(--border);}
+.acc:last-child{border-bottom:none;}
+.acc .listrow{border-bottom:none;}
+.acc .chev{color:var(--text-dim);font-size:.9rem;flex:none;margin-left:2px;}
+.accdet{padding:2px 0 14px;}
+.accdet .kv{padding:5px 0;font-size:.88rem;}
+details.fold{padding:0;}
+details.fold>summary{list-style:none;cursor:pointer;padding:14px 16px;font-size:.95rem;font-weight:600;letter-spacing:-.008em;display:flex;align-items:center;gap:8px;}
+details.fold>summary::-webkit-details-marker{display:none;}
+details.fold>summary::after{content:"⌄";margin-left:auto;color:var(--text-dim);font-weight:400;}
+details.fold[open]>summary::after{content:"⌃";}
+details.fold>summary .sum{font-weight:400;font-size:.82rem;color:var(--text-dim);}
+details.fold>*:not(summary){padding:0 16px;}
+details.fold>*:last-child{padding-bottom:16px;}
+details.fold.inline{border:1px solid var(--border);border-radius:var(--r-ctl);margin-bottom:12px;background:var(--surface-2);}
+details.fold.inline>summary{padding:11px 13px;font-size:.88rem;font-weight:550;}
+details.fold.inline>*:not(summary){padding:0 13px;}
+details.fold.inline>*:last-child{padding-bottom:13px;}
+/* Android vergisst die Dateifreigabe beim Neustart. Ein Tipp statt Suchen. */
+#connBanner{display:flex;align-items:center;gap:12px;margin:14px 14px 0;max-width:640px;padding:12px 14px;
+  border:1px solid var(--accent);border-radius:var(--r-card);background:var(--surface);}
+@media(min-width:668px){#connBanner{margin-left:auto;margin-right:auto;}}
+#connBanner .cb{flex:1;min-width:0;}
+#connBanner .cbt{font-weight:650;font-size:.92rem;}
+#connBanner .cbs{font-size:.8rem;color:var(--text-dim);margin-top:2px;}
+#connBanner button{flex:none;}
+.fluss{margin-top:18px;border-top:1px solid var(--border);padding-top:4px;}
+.frow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;}
+.frow + .frow{border-top:1px solid var(--border);}
+.frow .fl{min-width:0;font-size:.9rem;}
+.frow .fv{text-align:right;white-space:nowrap;}
+.frow .fv b{display:block;font-variant-numeric:tabular-nums;font-weight:600;font-size:1rem;
+  font-variation-settings:"wdth" 104;}
+.frow .fs{display:block;font-size:.74rem;color:var(--text-dim);margin-top:1px;
+  font-variant-numeric:tabular-nums;}
+.frow.sum{border-top:1.5px solid var(--text);margin-top:2px;}
+.frow.sum .fl{font-weight:650;} .frow.sum .fv b{font-weight:700;}
+.bl{display:flex;justify-content:space-between;gap:8px;font-size:.85rem;margin-bottom:5px;align-items:baseline;}
+.bl .lbl{color:var(--text-dim);}
+.bl b{font-variant-numeric:tabular-nums;font-weight:650;}
+.legend{font-size:.78rem;color:var(--text-dim);margin-top:6px;}
+
+/* ---------- Listen ---------- */
+.listrow{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:11px 0;border-bottom:1px solid var(--border);}
+.listrow:last-child{border-bottom:none;}
+.listrow .l{min-width:0;}
+.tagkopf{display:flex;justify-content:space-between;gap:8px;font-size:.78rem;color:var(--text-dim);
+  font-weight:600;padding:18px 0 6px;border-bottom:1px solid var(--border);}
+.tagkopf.first{padding-top:2px;}
+.tx{display:flex;justify-content:space-between;gap:10px;padding:11px 0 11px 11px;
+  border-bottom:1px solid var(--border);cursor:pointer;border-left:3px solid transparent;}
+.tx:last-child{border-bottom:none;}
+.tx:hover{background:var(--surface-2);}
+.tx-t{font-weight:600;overflow-wrap:anywhere;letter-spacing:-.006em;}
+.tx-s{font-size:.79rem;color:var(--text-dim);margin-top:2px;overflow-wrap:anywhere;}
+.tx-a{font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap;
+  font-variation-settings:"wdth" 104;}
+.tag{display:inline-block;padding:1px 7px;border-radius:5px;font-size:.7rem;font-weight:550;
+  border:1px solid var(--plan);color:var(--plan);margin-left:6px;vertical-align:1px;}
+.tag.rep{border-color:var(--border);color:var(--text-dim);background:var(--surface-2);}
+.grpblock{padding:13px 0;border-bottom:1px solid var(--border);}
+.grpblock:last-child{border-bottom:none;}
+.gt{font-weight:650;margin-bottom:7px;letter-spacing:-.008em;}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:8px;vertical-align:0;flex:none;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;
+  background:var(--surface-2);border:1px solid var(--border);font-size:.84rem;margin:0 6px 6px 0;}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);}
+.kv span:first-child{color:var(--text-dim);} .kv span:last-child{text-align:right;overflow-wrap:anywhere;}
+.note{background:var(--surface-2);border-radius:var(--r-ctl);padding:11px 13px;font-size:.84rem;
+  color:var(--text-dim);margin-bottom:12px;}
+
+/* ---------- Tabellen ---------- */
+table{width:100%;border-collapse:collapse;font-size:.88rem;}
+th,td{text-align:left;padding:9px 4px;border-bottom:1px solid var(--border);vertical-align:top;}
+th{color:var(--text-dim);font-weight:600;font-size:.78rem;}
+tr:last-child td{border-bottom:none;}
+tr.grp td{background:var(--surface-2);font-weight:650;}
+.kpit td{font-size:.95rem;} .kpit td:first-child{color:var(--text-dim);}
+.kpit td.num{font-variant-numeric:tabular-nums;font-weight:600;}
+table.fix{table-layout:fixed;}
+table.fix th,table.fix td{overflow-wrap:break-word;word-break:normal;padding:9px 3px;}
+table.fix th:first-child,table.fix td:first-child{width:46%;}
+table.fix th.num,table.fix td.num{width:18%;font-variant-numeric:tabular-nums;}
+
+/* ---------- Diagramme ---------- */
+.hbar{display:flex;align-items:center;gap:8px;padding:7px 0;}
+.hbar .hl{flex:1;min-width:0;}
+.hbar .ht{display:flex;justify-content:space-between;gap:8px;font-size:.85rem;margin-bottom:4px;}
+.hbar .hb{height:7px;border-radius:4px;background:var(--track);overflow:hidden;}
+.hbar .hb i{display:block;height:100%;border-radius:4px;}
+.legrow{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:.87rem;}
+.legrow .lv{margin-left:auto;font-variant-numeric:tabular-nums;}
+.chartwrap svg{width:100%;height:auto;display:block;}
+
+/* ---------- Dialoge und Meldungen ---------- */
+dialog{border:1px solid var(--border);border-radius:var(--r-card);background:var(--surface);
+  color:var(--text);padding:18px;width:min(92vw,420px);max-height:90vh;overflow-y:auto;}
+dialog::backdrop{background:rgba(8,10,12,.55);}
+.msg{font-size:.88rem;padding:11px 13px;border-radius:var(--r-ctl);font-weight:550;
+  box-shadow:0 6px 20px rgba(0,0,0,.28);}
+.msg.ok{background:var(--surface);color:var(--good);border:1px solid var(--good);}
+.msg.err{background:var(--surface);color:var(--bad);border:1px solid var(--bad);}
+
+/* ---------- Hilfsklassen aus früheren Phasen ---------- */
+.calc{margin-top:5px;font-size:.8rem;color:var(--accent);font-weight:600;}
+.calc.bad{color:var(--bad);font-weight:500;}
+.maprow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,46%);gap:6px;align-items:center;
+  padding:8px 0;border-bottom:1px solid var(--border);}
+.maprow select{min-height:40px;padding:7px;font-size:.84rem;}
+.maprow .t{min-width:0;overflow-wrap:anywhere;font-size:.88rem;}
+.maprow .s{font-size:.76rem;color:var(--text-dim);}
+.umbauscroll{max-height:60vh;overflow-y:auto;margin-top:8px;}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><svg width="27" height="27" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="114" fill="var(--accent-fill)"/><g fill="#FFFFFF"><rect x="118" y="180" width="276" height="46" rx="23" opacity=".38"/><rect x="118" y="180" width="128" height="46" rx="23"/><rect x="118" y="286" width="276" height="46" rx="23" opacity=".38"/><rect x="118" y="286" width="196" height="46" rx="23"/><rect x="332" y="144" width="30" height="224" rx="15"/></g></svg><h1>Finanz-Tracker</h1></div>
+  <span class="chip" id="statusChip">Prüfe …</span>
+</header>
+
+<nav id="tabs">
+  <button data-screen="erfassen" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Erfassen</button>
+  <button data-screen="budget"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 8h13M3 15h8"/><path d="M19 4v16"/></svg>Budget</button>
+  <button data-screen="konten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18"/></svg>Konten</button>
+  <button data-screen="abos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9a8 8 0 0 1 13.5-4.5L20 7"/><path d="M20 3v4h-4"/><path d="M20 15a8 8 0 0 1-13.5 4.5L4 17"/><path d="M4 21v-4h4"/></svg>Wiederk.</button>
+  <button data-screen="analyse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Analyse</button>
+  <button data-screen="mehr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="7" cy="17" r="2"/></svg>Mehr</button>
+</nav>
+
+<div id="connBanner" class="hidden">
+  <div class="cb">
+    <div class="cbt">Datei nicht verbunden</div>
+    <div class="cbs" id="connText"></div>
+  </div>
+  <button class="primary" id="btnConnNow">Verbinden</button>
+</div>
+<main>
+
+<!-- ERFASSEN -->
+<section class="screen active" id="screen-erfassen">
+  <div class="card hidden" id="faelligCard">
+    <h2>Fällige Daueraufträge</h2>
+    <div id="faelligList"></div>
+    <div class="btnrow" style="margin-top:10px"><button class="primary" id="btnFaelligAlle">Alle verbuchen</button></div>
+  </div>
+  <div class="card">
+    <h2 id="formTitle">Buchung erfassen</h2>
+    <div id="vorlagenBox" style="margin-bottom:10px"></div>
+    <div class="seg" id="modeSeg">
+      <button data-mode="Ausgabe" class="on">Ausgabe</button>
+      <button data-mode="Einnahme">Einnahme</button>
+      <button data-mode="Übertrag">Übertrag</button>
+    </div>
+    <div class="field amt"><label>Betrag (CHF)</label>
+      <input type="text" inputmode="decimal" autocomplete="off" id="txBetrag" placeholder="0.00">
+      <div class="calc hidden" id="txCalc"></div></div>
+    <div class="grid2">
+      <div class="field"><label>Datum</label><input type="date" id="txDatum"></div>
+      <div class="field"><label id="lblKonto">Konto</label><select id="txKonto"></select></div>
+    </div>
+    <p class="small hidden" id="futureHint"></p>
+    <label class="check box" id="rowRueck"><input type="checkbox" id="txRueck"><span id="lblRueck">Rückerstattung: Geld, das ich für diese Ausgabe zurückbekomme</span></label>
+    <div class="field"><label>Titel</label><input type="text" id="txTitel" placeholder="z. B. Wocheneinkauf Coop"></div>
+    <div class="grid2">
+      <div class="field"><label id="lblGruppe">Gruppe</label><select id="txGruppe"></select></div>
+      <div class="field"><label id="lblKat">Kategorie</label><select id="txKategorie"></select></div>
+    </div>
+    <div class="field hidden" id="rowNach"><label>Nach Konto</label><select id="txKontoNach"></select></div>
+    <div class="field hidden" id="rowTopf"><label>Topf (optional)</label><select id="txTopf"></select><p class="small">Reserviert diesen Betrag innerhalb des Kontos, z. B. für Steuern oder den Notgroschen.</p></div>
+    <p class="small hidden" id="uebHint">Ohne Kategorie ist der Übertrag neutral: Er verschiebt nur Geld zwischen Konten. Mit Kategorie zählt er zusätzlich als Ausgabe/Einnahme in deren Budget.</p>
+    <div id="splitBox"></div>
+    <div class="calc hidden" id="splitInfo"></div>
+    <p class="small hidden" id="splitHilfe">Der Betrag oben ist der Gesamtbetrag des Belegs. Was du hier auf weitere Kategorien verteilst, wird davon abgezogen; der Rest bleibt auf der Hauptkategorie. „Rest“ setzt den noch offenen Betrag ein.</p>
+    <div class="grid2">
+      <div class="field"><label>Tags</label><input type="text" id="txTags" placeholder="Ferien2027, WG"></div>
+      <div class="field"><label>Notiz (optional)</label><textarea id="txNotiz"></textarea></div>
+    </div>
+    <div class="btnrow">
+      <button class="primary" id="btnSaveTx">Speichern</button>
+      <button id="btnSplit">+ Aufteilen</button>
+      <button id="btnAlsVorlage">Als Vorlage</button>
+      <button id="btnCancelEdit" class="hidden">Abbrechen</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Buchungen</h2>
+    <div class="seg" id="listeSeg">
+      <button data-l="gebucht" class="on">Gebucht</button>
+      <button data-l="geplant">Geplant</button>
+      <button data-l="alle">Alle</button>
+    </div>
+    <details id="filterBox" class="fold inline"><summary>Suchen und filtern<span class="sum" id="filterAktiv"></span></summary>
+      <div class="field"><input type="search" id="txSuche" placeholder="Titel, Notiz, Tag, Betrag …"></div>
+      <div class="grid2">
+        <div class="field"><select id="filterJahr"></select></div>
+        <div class="field"><select id="filterMonat"></select></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><select id="filterKat"></select></div>
+        <div class="field"><select id="filterKonto"></select></div>
+      </div>
+      <div class="btnrow"><button class="small-btn" id="btnFilterReset">Filter zurücksetzen</button></div>
+    </details>
+    <p class="small hidden" id="sucheInfo" style="margin:8px 0 2px"></p>
+    <div id="recentTx"></div>
+    <div class="btnrow" style="margin-top:10px"><button id="btnMoreTx" class="small-btn">Mehr anzeigen</button></div>
+  </div>
+</section>
+
+<!-- BUDGET -->
+<section class="screen" id="screen-budget">
+  <div class="card" style="padding:10px 12px">
+    <div class="grid2" style="gap:8px">
+      <select id="dashJahr" aria-label="Jahr" style="min-height:42px;padding:9px 11px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);font-size:.95rem"></select>
+      <select id="dashMonat" aria-label="Monat" style="min-height:42px;padding:9px 11px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);font-size:.95rem"></select>
+    </div>
+  </div>
+  <div class="card">
+    <div id="flussBox"></div>
+    <p class="small" id="flussInfo" style="margin:14px 0 0"></p>
+    <div class="btnrow" style="margin-top:8px"><button class="small-btn" id="btnLohnSet">Planlohn setzen</button></div>
+  </div>
+  <div class="card">
+    <div id="restBox"></div>
+    <table class="kpit"><thead><tr><th></th><th class="num">Monat</th><th class="num" id="thJahr">Jahr</th></tr></thead><tbody>
+      <tr><td>Einnahmen</td><td class="num" id="kEin">–</td><td class="num" id="kEinJ">–</td></tr>
+      <tr><td>Fixkosten</td><td class="num" id="kFix">–</td><td class="num" id="kFixJ">–</td></tr>
+      <tr><td>Variable Ausgaben</td><td class="num" id="kVar">–</td><td class="num" id="kVarJ">–</td></tr>
+      <tr><td>Ausgaben total</td><td class="num" id="kAus">–</td><td class="num" id="kAusJ">–</td></tr>
+      <tr id="rowSparKpi" class="hidden"><td title="Geld, das du zurücklegst: Sparen, Vorsorge, Steuern. Zählt nicht als Ausgabe.">Rücklagen</td><td class="num" id="kSpar">–</td><td class="num" id="kSparJ">–</td></tr>
+      <tr id="rowRueckKpi" class="hidden"><td title="Rückerstattungen, die im Zeitraum keine Ausgabe derselben Kategorie vorgefunden haben. Sie senken die Ausgaben anderer Kategorien nicht.">Erstattet ohne Ausgabe</td><td class="num pos" id="kRueck">–</td><td class="num pos" id="kRueckJ">–</td></tr>
+      <tr><td>Saldo</td><td class="num" id="kSaldo">–</td><td class="num" id="kSaldoJ">–</td></tr>
+      <tr><td>Sparquote</td><td class="num" id="kQuote">–</td><td class="num" id="kQuoteJ">–</td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <h2>Budget nach Gruppe</h2>
+    <p class="small">Monatsbudget minus bereits gebuchte Ausgaben. Jahresposten erscheinen nur in der Jahreszeile.</p>
+    <div id="budgetBars"></div>
+  </div>
+  <details class="card fold"><summary>Was wäre wenn</summary><p class="small">Rechnet einen anderen Monatslohn gegen deine heutigen Budgets. Ändert nichts an den Daten.</p><div class="field"><label>Monatslohn (CHF)</label><input type="text" inputmode="decimal" autocomplete="off" id="planLohn" placeholder="z. B. 5500"></div><div id="planBox"></div></details>
+</section>
+
+<!-- KONTEN -->
+<section class="screen" id="screen-konten">
+  <div class="card">
+    <div class="listrow" style="border:none;padding-top:0">
+      <div class="l"><div class="small">Vermögen heute · CHF</div><div class="big" id="vermHeute">–</div></div>
+      <div class="num"><div class="small">in 30 Tagen</div><div class="small planc" id="vermPrognose">–</div></div>
+    </div>
+    <div id="kontenSaldi"></div>
+    <div id="liquiBox"></div>
+  </div>
+  <div class="card">
+    <h2>Töpfe</h2>
+    <p class="small">Ein Topf reserviert Geld innerhalb eines bestehenden Kontos, ohne dass du ein neues Konto brauchst. Was im Topf liegt, zählt nicht mehr als frei verfügbar.</p>
+    <div id="topfListe"></div>
+    <div class="grid2" style="margin-top:10px">
+      <div class="field"><label>Name</label><input type="text" id="tpName" placeholder="z. B. Steuern 2027"></div>
+      <div class="field"><label>Konto</label><select id="tpKonto"></select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Schon drin (CHF)</label><input type="text" inputmode="decimal" id="tpStart" placeholder="0"></div>
+      <div class="field"><label>Ziel (CHF, optional)</label><input type="text" inputmode="decimal" id="tpZiel" placeholder="0 = kein Ziel"></div>
+    </div>
+    <p class="small">„Schon drin“ ist der Betrag, der heute bereits reserviert ist. Alles Weitere füllst du über Buchungen mit diesem Topf.</p>
+    <div class="btnrow">
+      <button class="primary" id="btnSaveTopf">Speichern</button>
+      <button id="btnCancelTopf" class="hidden">Abbrechen</button>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card">
+    <h2>Sparziele</h2>
+    <p class="small" id="sparInfo"></p>
+    <div id="zieleListe"></div>
+    <h3>Ziel anlegen</h3>
+    <div class="grid2">
+      <div class="field"><label>Name</label><input type="text" id="zName" placeholder="z. B. Eigenkapital Haus"></div>
+      <div class="field"><label>Zielbetrag</label><input type="number" step="100" inputmode="decimal" id="zBetrag"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Zieldatum (optional)</label><input type="date" id="zDatum"></div>
+      <div class="field"><label>Stand ablesen von</label><select id="zKonto"></select></div>
+    </div>
+    <div class="btnrow"><button class="primary" id="btnSaveZiel">Ziel speichern</button><button id="btnCancelZiel" class="hidden">Abbrechen</button></div>
+  </div>
+  <details class="card fold"><summary>Kommende 90 Tage<span class="sum" id="kommSum"></span></summary><p class="small">Geplante Buchungen und Daueraufträge. Sie zählen erst am Ausführungstag.</p><div id="kommend"></div></details>
+  <details class="card fold"><summary>Konto anlegen / bearbeiten</summary>
+    
+    <div class="field"><label>Name</label><input type="text" id="koName" placeholder="z. B. Depot"></div>
+    <div class="grid2">
+      <div class="field"><label>Art</label><select id="koTyp">
+        <option value="bank">Bankkonto / Bargeld</option>
+        <option value="anlage">Anlagekonto (Wert aus Positionen)</option>
+      </select></div>
+      <div class="field" id="rowKoStart"><label id="lblKoStart">Startsaldo</label><input type="number" step="0.05" inputmode="decimal" id="koStart"></div>
+    </div>
+    <div class="field" id="rowKoDatum"><label>Stichtag</label><input type="date" id="koDatum"></div>
+    <p class="small" id="koStartHint">Startsaldo = Kontostand an diesem Tag. Alle Buchungen ab diesem Datum werden dazugerechnet.</p>
+    <div class="btnrow">
+      <button class="primary" id="btnSaveKonto">Speichern</button>
+      <button id="btnCancelKonto" class="hidden">Abbrechen</button>
+    </div>
+  </details>
+  <details class="card fold" id="wertCard"><summary>Wert eines Anlagekontos</summary>
+    
+    <p class="note hidden" id="wHint">Du hast noch kein Anlagekonto. Lege oben eines mit der Art „Anlagekonto“ an, etwa für ein Wertschriftendepot.</p>
+    <div class="field wform"><label>Konto</label><select id="wKontoSel"></select></div>
+    <div id="wInfo" class="wform"></div>
+    <div class="grid2 wform" style="margin-top:12px">
+      <div class="field"><label>Aktueller Wert (CHF)</label><input type="number" step="0.01" inputmode="decimal" id="wWert"></div>
+      <div class="field"><label>Stand per</label><input type="date" id="wDatum"></div>
+    </div>
+    <div class="btnrow wform"><button class="primary" id="btnSaveWert">Wert speichern</button></div>
+    <p class="small wform">Du trägst nur den Betrag ein, den dir dein Anbieter anzeigt. Überträge danach werden automatisch dazugerechnet oder abgezogen, bis du den nächsten Wert erfasst.</p>
+    <div id="wListe" class="wform" style="margin-top:10px"></details>
+  <div class="card">
+    <h2>Vermögensverlauf</h2>
+    <div class="chartwrap" id="vermLine"></div>
+    <div class="btnrow" style="margin:10px 0"><button id="btnSnap">Heutigen Stand sichern</button></div>
+    <div id="vermTable"></div>
+  </div>
+</section>
+
+<!-- ABOS -->
+<section class="screen" id="screen-abos">
+  <div class="card">
+    <div class="listrow" style="border:none;padding-top:0">
+      <div class="l"><div class="small">Fixkosten pro Monat</div><div class="big neg" id="fixMonat">–</div></div>
+      <div class="num"><div class="small">pro Jahr</div><div class="mid" id="fixJahr">–</div></div>
+    </div>
+    <div class="kv"><span>Wiederkehrende Einnahmen</span><span class="pos num" id="fixEin">–</span></div>
+    <div class="kv"><span>Regelmässige Überträge (Sparen)</span><span class="num" id="fixUeb">–</span></div>
+    <p class="small">Überträge auf eigene Konten sind keine Kosten. Sie zählen hier separat, auch wenn du ihnen eine Kategorie gibst.</p>
+  </div>
+  <div class="card">
+    <h2 id="serFormTitle">Dauerauftrag / Abo anlegen</h2>
+    <div class="seg" id="serSeg">
+      <button data-mode="Ausgabe" class="on">Ausgabe</button>
+      <button data-mode="Einnahme">Einnahme</button>
+      <button data-mode="Übertrag">Übertrag</button>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Titel</label><input type="text" id="serTitel" placeholder="z. B. Spotify"></div>
+      <div class="field"><label>Betrag (CHF)</label><input type="text" inputmode="decimal" autocomplete="off" id="serBetrag" placeholder="z. B. 26.95"><div class="calc hidden" id="serCalc"></div></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label id="serLblGruppe">Gruppe</label><select id="serGruppe"></select></div>
+      <div class="field"><label id="serLblKat">Kategorie</label><select id="serKategorie"></select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label id="serLblKonto">Konto</label><select id="serKonto"></select></div>
+      <div class="field hidden" id="serRowNach"><label>Nach Konto</label><select id="serKontoNach"></select></div>
+    </div>
+    <div class="field hidden" id="serRowTopf"><label>Topf (optional)</label><select id="serTopf"></select></div>
+    <div class="grid2">
+      <div class="field"><label>alle</label><input type="number" min="1" step="1" inputmode="numeric" id="serN" value="1"></div>
+      <div class="field"><label>Einheit</label><select id="serEinheit">
+        <option value="M">Monate</option><option value="W">Wochen</option><option value="T">Tage</option><option value="J">Jahre</option>
+      </select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Erste Zahlung</label><input type="date" id="serStart"></div>
+      <div class="field"><label>Letzte Zahlung (optional)</label><input type="date" id="serEnde"></div>
+    </div>
+    <label class="check box" id="serRowRueck"><input type="checkbox" id="serRueck"><span id="serLblRueck">Rückerstattung: wiederkehrender Beitrag, der diese Ausgabe senkt</span></label>
+    <div class="check"><input type="checkbox" id="serAuto" checked><label for="serAuto" style="margin:0">Automatisch verbuchen, sobald fällig</label></div>
+    <div class="btnrow"><button class="primary" id="btnSaveSerie">Speichern</button><button id="btnCancelSerie" class="hidden">Abbrechen</button></div>
+  </div>
+  <div class="card">
+    <h2>Erkannte Muster</h2>
+    <p class="small" id="musterInfo"></p>
+    <div id="musterListe"></div>
+  </div>
+  <div class="card">
+    <h2>Alle Daueraufträge</h2>
+    <div id="serList"></div>
+  </div>
+</section>
+
+<!-- ANALYSE -->
+<section class="screen" id="screen-analyse">
+  <div class="seg" id="anaSeg">
+    <button data-a="ueber" class="on">Übersicht</button>
+    <button data-a="verlauf">Verlauf</button>
+    <button data-a="abos">Fixkosten</button>
+  </div>
+  <div class="card">
+    <div class="field" style="margin:0"><label>Zeitraum</label><select id="anaZeit"></select></div>
+  </div>
+
+  <div id="ana-ueber">
+    <div class="card">
+      <div id="anaKpi"></div>
+    </div>
+    <div class="card">
+      <h2>Wofür das Geld geht</h2>
+      <div id="anaDonut"></div>
+      <div id="anaDonutLeg"></div>
+    </div>
+    <div class="card">
+      <h2>Grösste Kategorien</h2>
+      <div id="anaTopKat"></div>
+    </div>
+    <div class="card">
+      <h2>Grösste Einzelbuchungen</h2>
+      <div id="anaTopTx"></div>
+    </div>
+    <div class="card">
+      <h2>Alle Kategorien</h2>
+      <p class="small" id="anaTabInfo"></p>
+      <table class="fix"><thead><tr><th>Kategorie</th><th class="num">Ist</th><th class="num" id="thSpalte2">Ø/Mt</th><th class="num" id="thSpalte3">Budget</th></tr></thead>
+      <tbody id="ausTable"></tbody></table>
+    </div>
+  </div>
+
+  <div id="ana-verlauf" class="hidden">
+    <div class="card">
+      <h2>Monate im Jahr</h2>
+      <p class="small">Ausgaben je Monat (Balken) gegen Einnahmen (Linie).</p>
+      <div class="chartwrap" id="monatsChart"></div>
+    </div>
+    <div class="card">
+      <h2>Einzelne Kategorie über die Zeit</h2>
+      <div class="field"><select id="anaKatSel"></select></div>
+      <div class="chartwrap" id="anaKatChart"></div>
+      <p class="small" id="anaKatInfo"></p>
+    </div>
+    <div class="card">
+      <h2>Budget nach Gruppe im Zeitraum</h2>
+      <div id="ausBar"></div>
+      <p class="legend" id="ausLegend"></p>
+    </div>
+    <div class="card">
+      <h2>Verlauf pro Jahr</h2>
+      <div class="chartwrap" id="trendLine"></div>
+    </div>
+  </div>
+
+  <div id="ana-abos" class="hidden">
+    <div class="card">
+      <h2>Fixkosten-Anteil</h2>
+      <div id="anaFixKpi"></div>
+      <p class="small">Fix = alles, was als Dauerauftrag hinterlegt ist. Je tiefer der Anteil, desto mehr deiner Ausgaben kannst du kurzfristig beeinflussen.</p>
+    </div>
+    <div class="card">
+      <h2>Deine wiederkehrenden Posten</h2>
+      <div id="anaAboListe"></div>
+    </div>
+  </div>
+</section>
+
+<!-- MEHR -->
+<section class="screen" id="screen-mehr">
+  <div class="seg" id="mehrSeg">
+    <button data-p="kat" class="on">Kategorien</button>
+    <button data-p="daten">Daten &amp; Import</button>
+  </div>
+  <div id="pane-kat">
+    <div class="card">
+      <div class="btnrow"><button class="primary" id="btnNeueKat">+ Kategorie</button><button id="btnNeueGruppe">+ Gruppe</button>
+        <button id="btnVorschlag">Budgets vorschlagen</button></div>
+      <p class="small" style="margin:10px 0 0">Tippe auf eine Gruppe oder Kategorie, um Name, Farbe oder Budget zu ändern.</p>
+    </div>
+    <div id="katUebersicht"></div>
+    <div class="card">
+      <h2>Arten</h2>
+      <p class="small">Jede Kategorie gehört zu einer Art. Die Art entscheidet, ob etwas als Ausgabe zählt und wo es im Geldfluss steht. Du kannst eigene anlegen, z. B. Steuern getrennt von Sparen.</p>
+      <div id="artenListe"></div>
+      <div class="btnrow" style="margin-top:10px"><button id="btnNeueArt">+ Art</button></div>
+    </div>
+  </div>
+  <div id="pane-daten" class="hidden">
+    <div class="card">
+      <h2>Datenquelle</h2>
+      <p id="fileStatus" class="small">Prüfe Datenquelle …</p>
+      <div class="kv" style="margin-top:10px"><span>App-Version</span><span id="appVersion">–</span></div>
+      <div class="btnrow" style="margin-top:10px"><button id="btnUpdate">Nach Update suchen</button></div>
+      <p class="small" id="updateInfo"></p>
+      <div class="btnrow">
+        <button id="btnNewFile">Neue Datei erstellen</button>
+        <button id="btnOpenFile">Bestehende Datei öffnen</button>
+        <button id="btnReconnect" class="hidden">Datei wieder verbinden</button>
+        <button id="btnReload">Neu laden</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Import aus „Meine Finanzen“</h2>
+      <p class="small">Übernimmt alle alten Buchungen. Du ordnest jede alte Kategorie einmal zu, nicht jede Buchung einzeln.</p>
+      <div class="btnrow"><button class="primary" id="btnImportMF">CSV aus „Meine Finanzen“ wählen</button>
+        <button id="mfUndo" class="danger hidden"></button></div>
+      <input type="file" id="mfInput" accept=".csv,.txt,text/csv" class="hidden">
+      <div id="mfWizard" class="hidden" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <h2>Sichern &amp; Übertragen</h2>
+      <p class="small">JSON = komplette Sicherung. CSV = nur Buchungen, z. B. für Excel.</p>
+      <div class="btnrow">
+        <button id="btnJsonSave">JSON sichern</button>
+        <button id="btnJsonLoad">JSON laden</button>
+        <button id="btnExportCsv">CSV Export</button>
+        <button id="btnImportCsv">CSV Import</button>
+      </div>
+      <input type="file" id="jsonFileIn" accept=".json,application/json" class="hidden">
+      <input type="file" id="csvInput" accept=".csv,.txt,text/csv" class="hidden">
+    </div>
+  </div>
+</section>
+
+</main>
+
+<dialog id="vorDlg">
+  <h2 style="margin:0 0 10px;font-size:1.05rem">Budgets aus deinen Ausgaben</h2>
+  <div class="grid2">
+    <div class="field"><label>Zeitraum</label><select id="vorMonate">
+      <option value="6">letzte 6 Monate</option><option value="12" selected>letzte 12 Monate</option>
+      <option value="24">letzte 24 Monate</option><option value="36">letzte 36 Monate</option></select></div>
+    <div class="field"><label>Übernehmen ab</label><input type="month" id="vorAb"></div>
+  </div>
+  <p class="small">Vorschlag = Durchschnitt pro Monat, auf 5 aufgerundet. Der Median zeigt den typischen Monat: Liegt er weit unter dem Durchschnitt, gibt es einzelne Ausreisser.</p>
+  <div id="vorListe"></div>
+  <div class="btnrow" style="margin-top:12px">
+    <button class="primary" id="btnVorUebernehmen">Markierte übernehmen</button>
+    <button id="btnVorClose">Schliessen</button>
+  </div>
+</dialog>
+
+<dialog id="catDlg">
+  <h2 style="margin:0 0 12px;font-size:1.05rem" id="catDlgTitle">Kategorie</h2>
+  <div class="field"><label>Gruppe</label><select id="catGruppe"></select></div>
+  <div class="field"><label>Name</label><input type="text" id="catName"></div>
+  <div class="field"><label>Art</label><select id="catArt"></select><p class="small" id="catArtHint"></p></div>
+  <div class="grid2">
+    <div class="field"><label>Budget (CHF)</label><input type="number" step="1" inputmode="decimal" id="catBudget" placeholder="0 = kein Budget"></div>
+    <div class="field"><label>Rhythmus</label><select id="catRhythmus"><option value="M">pro Monat</option><option value="J">pro Jahr</option></select></div>
+  </div>
+  <div class="grid2">
+    <div class="field"><label>Übertrag (%)</label><input type="number" min="0" max="100" step="5" inputmode="numeric" id="catRoll"></div>
+    <div class="field"><label>Gilt ab Monat</label><input type="month" id="catAb"></div>
+  </div>
+  <p class="small">Eine Budgetänderung gilt ab dem gewählten Monat. Frühere Monate behalten ihr damaliges Budget.</p>
+  <div id="catHist"></div>
+  <div class="btnrow" style="margin-top:12px">
+    <button class="primary" id="btnSaveCat">Speichern</button>
+    <button class="danger" id="btnDelCat">Löschen</button>
+    <button id="btnCloseCat">Schliessen</button>
+  </div>
+</dialog>
+
+<dialog id="artDlg">
+  <h2 style="margin:0 0 12px;font-size:1.05rem" id="artDlgTitle">Art</h2>
+  <div class="field"><label>Name</label><input type="text" id="artName" placeholder="z. B. Steuern"></div>
+  <div class="field"><label>Gilt für</label><select id="artTyp"><option value="Ausgabe">Ausgaben</option><option value="Einnahme">Einnahmen</option></select></div>
+  <div class="field"><label>Rolle im Geldfluss</label><select id="artRolle">
+    <option value="fix">Planbar – wird vom Einkommen abgezogen</option>
+    <option value="variabel">Variabel – was danach übrig bleibt</option>
+    <option value="ruecklage">Rücklage – Geld, das du zurücklegst</option>
+  </select><p class="small" id="artRolleHint"></p></div>
+  <label class="check box" id="rowArtKonsum"><input type="checkbox" id="artKonsum"><span>Zählt als Ausgabe (Budget, Ausgabensumme, Sparquote)</span></label>
+  <p class="small" id="artKonsumHint"></p>
+  <div class="btnrow" style="margin-top:12px">
+    <button class="primary" id="btnSaveArt">Speichern</button>
+    <button class="danger hidden" id="btnDelArt">Löschen</button>
+    <button id="btnCloseArt">Schliessen</button>
+  </div>
+</dialog>
+
+<dialog id="grpDlg">
+  <h2 style="margin:0 0 12px;font-size:1.05rem" id="grpDlgTitle">Gruppe</h2>
+  <div class="field"><label>Name</label><input type="text" id="grpName"></div>
+  <div class="grid2">
+    <div class="field"><label>Typ</label><select id="grpTyp"><option>Ausgabe</option><option>Einnahme</option></select></div>
+    <div class="field"><label>Farbe</label><input type="color" id="grpFarbe" style="padding:4px;height:44px"></div>
+  </div>
+  <p class="small hidden" id="grpHint">Der Typ ist fix, solange die Gruppe Kategorien enthält.</p>
+  <div class="btnrow" style="margin-top:12px">
+    <button class="primary" id="btnSaveGrp">Speichern</button>
+    <button class="danger" id="btnDelGrp">Löschen</button>
+    <button id="btnCloseGrp">Schliessen</button>
+  </div>
+</dialog>
+
+<dialog id="txDlg">
+  <h2 style="margin:0 0 10px;font-size:1.05rem" id="dlgTitle"></h2>
+  <div id="dlgBody"></div>
+  <div class="btnrow" style="margin-top:14px">
+    <button class="primary" id="dlgEdit">Bearbeiten</button>
+    <button class="danger" id="dlgDel">Löschen</button>
+    <button id="dlgClose">Schliessen</button>
+  </div>
+</dialog>
+

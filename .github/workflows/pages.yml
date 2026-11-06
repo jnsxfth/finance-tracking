@@ -1,0 +1,44 @@
+# Baut die App aus src/ und veröffentlicht nur build/ auf GitHub Pages.
+# Gebaut wird in der Werkstatt, nicht im Repo-Zustand vertraut: build.sh prüft dabei
+# Element-IDs, JS und ob beide Versionsnummern zusammenpassen, und bricht sonst ab.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Notbremse: eine Datendatei darf nie im Repo liegen, auch nicht versehentlich.
+      - name: Keine Datendatei im Repo
+        run: |
+          if git ls-files | grep -qiE 'finanzdaten|sicherungen/'; then
+            echo "FEHLER: Datendatei oder Sicherung im Repo gefunden."; git ls-files | grep -iE 'finanzdaten|sicherungen/'; exit 1
+          fi
+
+      - name: Bauen und prüfen
+        run: bash src/build.sh
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build
+      - id: deployment
+        uses: actions/deploy-pages@v4
