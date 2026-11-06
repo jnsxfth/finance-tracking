@@ -24,6 +24,9 @@ PY
 
 cat "$SRC/head.html" "$SRC/data.js" "$SRC/persist.js" "$TMP/main_build.js" > "$OUT/index.html"
 cp "$SRC/sw.js" "$SRC/manifest.webmanifest" "$SRC/icon-192.png" "$SRC/icon-512.png" "$OUT/"
+# Jekyll darf die fertigen Dateien nicht anfassen. Wirkt nur beim Veroeffentlichen
+# aus einem Branch; ueber GitHub Actions laeuft Jekyll ohnehin nicht.
+touch "$OUT/.nojekyll"
 
 python3 - "$OUT/index.html" "$TMP/ex.js" "$SRC/sw.js" <<'PY'
 import re, sys
