@@ -135,6 +135,7 @@ function rhythmusWort(tage) {
 function renderMuster() {
   const alle = muster();
   const bald = alle.filter(m => m.naechst <= addDays(TODAY, 120)).slice(0, 10);
+  $('musterSum').textContent = alle.length ? ' · ' + alle.length + (alle.length === 1 ? ' Posten' : ' Posten') : ' · keine';
   $('musterInfo').textContent = alle.length
     ? alle.length + ' laufende Posten ohne Dauerauftrag erkannt. Hier die nächsten ' + bald.length + '.'
     : 'Keine regelmässigen Posten gefunden, für die noch kein Dauerauftrag besteht. Erkannt wird ab drei gleichartigen Buchungen mit gleichmässigem Abstand.';

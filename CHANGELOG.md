@@ -2,6 +2,23 @@
 
 Neueste oben. Pro Eintrag: Anlass, Änderungen, Tests, was der Nutzer tun muss.
 
+## 1.2.1 · 06.11.2026 «Nachtrag»
+
+**Anlass.** Die Rechnerzeile aus 1.2.0 war am Handy unbenutzbar: die Knöpfe waren da, reagierten aber nicht. Dazu zwei Wünsche zur Übersicht auf «Wiederk.».
+
+- **Fehler in A1 behoben.** Die Zeile hielt den Fokus über `preventDefault()` auf `touchstart` — und damit unterdrückt der Browser den darauffolgenden `click` vollständig. Der Knopf tat am Finger gar nichts, mit der Maus schon. Die Aktion liegt jetzt in `pointerdown` (Maus, Finger, Stift in einem Ereignis, feuert vor dem Fokuswechsel), `click` ist weg. Fallback auf `touchstart`/`mousedown` nur für Browser ohne `PointerEvent`.
+- **Fixkosten-Kachel aufgeräumt.** Der Blickfang (Fixkosten pro Monat und Jahr) bleibt oben; wiederkehrende Ausgaben, wiederkehrende Einnahmen und die Nettoüberträge je Konto liegen in der Klappe «Wiederkehrend im Detail», deren Kopfzeile das Wichtigste zeigt, ohne dass man sie öffnet.
+- **«Erkannte Muster» ist eine Klappe** mit der Anzahl in der Kopfzeile.
+
+**Befund, den du kennen musst.** «Wiederkehrende Ausgaben» ist dieselbe Zahl wie «Fixkosten pro Monat»: `renderAbos` summiert dort alle Ausgabe-Daueraufträge, unabhängig von der Rolle ihrer Art. Die Zeile steht jetzt der Symmetrie wegen in der Klappe und sagt das auch. Echte Fixkosten wären nur die Serien mit Art-Rolle `fix`; das wäre eine andere, kleinere Zahl. Umstellen würde eine Kennzahl ändern, die du kennst — darum nicht stillschweigend gemacht. Sag an, wenn der Blickfang künftig nur `fix` zählen soll.
+
+**Tests.** Neu `t25-touch.js`: läuft in einem **echten** Chromium mit Finger-Emulation (`devices['Pixel 7']`, `page.tap()`) und prüft Rechnerzeile, Fokus und beide Klappen. Gegenprobe gemacht: mit der Mechanik aus 1.2.0 schlägt t25 fehl (`30102` statt `30+10*2`), der Test deckt die Ursache also wirklich ab. Der A1-Block ist dafür aus `t24` entfernt — jsdom kennt keine Touch-Vorgaben und liess den Fehler durch; ein Test, der das tut, ist schlechter als keiner. `t25` braucht Playwright und nur `build/index.html` (keine persönlichen Daten, Regel 8), läuft also im Cloud-Container. t18, t21, t22, t23, t24 unverändert grün.
+
+**Was du tun musst.**
+1. Veröffentlichen: `git add -A && git commit -m "1.2.1" && git push`.
+2. Am Handy prüfen: Version 1.2.1 unter Mehr → Daten, dann Rechnerzeile antippen.
+3. Nächster Build ist 1.2.2 «Datei»: G0 + G3 + A4 Punkt 3 bis 5 + I2-Messung.
+
 ## 1.2.0 · 06.11.2026 «Bedienung»
 
 **Anlass.** Fünf Punkte, die im Alltag stören: der Rechner im Betragsfeld war auf dem Handy
@@ -47,7 +64,7 @@ Fremdes liegen.
 2. Am Handy unter Mehr → Daten prüfen, dass dort 1.2.0 steht.
 3. Am Handy antesten: Rechnerzeile im Betragsfeld, zweimal schnell auf «Verbuchen»,
    eine Buchung löschen und zurückholen, «Wiederk.» mit den Netto-Zeilen.
-4. Nächster Build ist 1.2.1 «Datei»: G0 + G3 + A4 Punkt 3 bis 5 + I2-Messung.
+4. Die Rechnerzeile war fehlerhaft, siehe 1.2.1.
 
 ## 1.1.2 · 06.11.2026
 

@@ -1,4 +1,4 @@
-# Roadmap (Stand 06.11.2026, nach Release 1.2.0)
+# Roadmap (Stand 06.11.2026, nach Release 1.2.1)
 
 Gebaut wird nur, was ein prüfbares «Fertig heisst» hat. Die Reihenfolge ist ein Vorschlag.
 
@@ -18,7 +18,7 @@ Gebaut wird nur, was ein prüfbares «Fertig heisst» hat. Die Reihenfolge ist e
 
 ## A — Fehler, klein
 
-- **A1 ✅ 1.2.0** Rechnerzeile `+ − × ÷ ( ) ⌫` über den Betragsfeldern, nur bei Fokus.
+- **A1 ✅ 1.2.1** Rechnerzeile `+ − × ÷ ( ) ⌫` über den Betragsfeldern, nur bei Fokus. In 1.2.0 ausgeliefert und am Finger wirkungslos (`touchstart` + `preventDefault()` unterdrückt den `click`), in 1.2.1 auf `pointerdown` umgebaut und mit `t25` im echten Browser geprüft.
 - **A2 ✅ 1.2.0** `formOeffnen()` für Konto, Dauerauftrag, Topf, Ziel, Buchung, Muster.
 - **A3 ✅ 1.2.0** Überträge netto pro Konto, Töpfe als Unterzeile.
 - **A4 Punkt 1 und 2 ✅ 1.2.0** Klicksperre (`einmal`) und kompaktes JSON (684 → 540 KB).
@@ -55,6 +55,8 @@ Grösster Alltagsgewinn. Bausteine in `phase5.js`: `normTitel()`, `worte()`. (1)
 - **C1 Erfassen abgrenzen.** Betrag, Titel, Kategorie als zusammenhängende Fläche (`--surface`), Konto/Datum/Tags/Notiz/Aufteilen in ruhigere zweite Gruppe, Ausgabe/Einnahme/Übertrag-Wahl deutlicher. **Erst Entwurf zeigen**, nicht umbauen. `02 Designsystem.md` gilt.
 - **C2 Fällige Daueraufträge auf «Erfassen».** Hinweis oben mit Anzahl und Direktverbuchen; Reiter bleiben wie sie sind. *Fertig heisst:* Anzahl sichtbar bei Fälligem, sonst nichts.
 - **C3 ✅ 1.2.0** Rückmeldung beim Bearbeiten, erledigt mit A2.
+- **C5 ✅ 1.2.1** «Wiederk.» aufgeräumt: Fixkosten-Kachel mit Klappe «Wiederkehrend im Detail» (Ausgaben, Einnahmen, Nettoüberträge je Konto), «Erkannte Muster» als Klappe mit Anzahl im Kopf.
+- **C6 offen, eine Ansage genügt.** «Fixkosten pro Monat» zählt heute **alle** Ausgabe-Daueraufträge, nicht nur die mit Art-Rolle `fix`. Streng gezählt wäre es eine kleinere Zahl. Ändert eine bekannte Kennzahl, darum nur auf ausdrückliche Ansage.
 - **C4** Über vierzig Kategorien flach: erst anschauen, ob es stört.
 
 ---
@@ -93,7 +95,7 @@ Einziger Finanzguru-Punkt ohne Bankanbindung, der hier fehlt: pro Dauerauftrag �
 
 ## I — Haltbarkeit
 
-- **I1 Regressionsnetz.** `eff`, `agg`, `rollAt`, `ausSplit`, `istKonsum` sind ungeprüft, seit t9–t17 weg sind (der jsdom-Ersatz aus 1.2.0 macht sie ohne Playwright prüfbar); B, D, H1 fassen sie an. `tests/fixture.json` mit rund dreissig **erfundenen** Buchungen, je Sonderfall eine (Rückerstattung mit/ohne Deckung, Gegenbuchung, Übertrag mit/ohne Kategorie, Topf, Budgetwechsel, Jahresgrenze, Zukunft) und `tests/t20-kern.js` mit erwarteten Summen. *Fertig heisst:* unter zwanzig Sekunden grün, Teil jedes Releases.
+- **I1 Regressionsnetz.** `eff`, `agg`, `rollAt`, `ausSplit`, `istKonsum` sind ungeprüft, seit t9–t17 weg sind (der jsdom-Ersatz aus 1.2.0 macht sie ohne Playwright prüfbar; was am Finger hängt, gehört dagegen in einen `t25`-artigen Test im echten Browser); B, D, H1 fassen sie an. `tests/fixture.json` mit rund dreissig **erfundenen** Buchungen, je Sonderfall eine (Rückerstattung mit/ohne Deckung, Gegenbuchung, Übertrag mit/ohne Kategorie, Topf, Budgetwechsel, Jahresgrenze, Zukunft) und `tests/t20-kern.js` mit erwarteten Summen. *Fertig heisst:* unter zwanzig Sekunden grün, Teil jedes Releases.
 - **I2** Einmal messen und festhalten: Grösse `index.html`, Zeit bis bedienbar auf dem Handy, Buchungszahl. Überschreitung um mehr als ein Viertel begründen.
 - **I3** Archivo als `woff2` mitliefern und in den SW-Cache.
 
@@ -102,11 +104,12 @@ Einziger Finanzguru-Punkt ohne Bankanbindung, der hier fehlt: pro Dauerauftrag �
 ## Reihenfolge
 
 1. **Build 1.2.0 «Bedienung» ✅** A1 + A2 + A3 + A4 (Punkt 1 und 2) + G2.
-2. **Build 1.2.1 «Datei»: G0 + G3 + A4 (Punkt 3 bis 5) + I2-Messung.** ← nächster Schritt
+2. **Build 1.2.1 «Nachtrag» ✅** A1-Fehler behoben, «Wiederk.» aufgeräumt (C5).
+3. **Build 1.2.2 «Datei»: G0 + G3 + A4 (Punkt 3 bis 5) + I2-Messung.** ← nächster Schritt
    Alles, was `persist.js` tief anfasst, in einem Zug. G1 folgt in der Bauform, die G0 ergibt.
-3. **I1**, dann **G1**, **B**, **C1 + C2**, **D**.
-4. **F**; **H1** nach dem Einzug; **H2** im Januar; Rest von **E**.
-5. I3 nebenher. H3 richtet der Nutzer 2027 selbst ein.
+4. **I1**, dann **G1**, **B**, **C1 + C2**, **D**.
+5. **F**; **H1** nach dem Einzug; **H2** im Januar; Rest von **E**.
+6. I3 nebenher. H3 richtet der Nutzer 2027 selbst ein.
 
 ## Offene Fragen
 
@@ -121,6 +124,7 @@ Einziger Finanzguru-Punkt ohne Bankanbindung, der hier fehlt: pro Dauerauftrag �
 - **1.1.1 (06.11.2026)** Siehe S2 und `CHANGELOG.md`.
 - **1.1.2 (06.11.2026)** Siehe S3 und `CHANGELOG.md`. Veröffentlicht am 06.11. über den Zweig `gh-pages` (S4), altes Repo gelöscht (S5).
 - **1.2.0 (06.11.2026)** A1, A2, A3, A4 (1+2), G2, dazu C3. Siehe `CHANGELOG.md`.
+- **1.2.1 (06.11.2026)** A1-Fehler behoben (Touch), C5. Siehe `CHANGELOG.md`.
 
 ## Verworfen
 

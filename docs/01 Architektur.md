@@ -1,4 +1,4 @@
-# Architektur, Datenmodell, Rechenregeln (Stand 1.2.0)
+# Architektur, Datenmodell, Rechenregeln (Stand 1.2.1)
 
 ## Ordner, Dateien und Build
 
@@ -92,7 +92,7 @@ state = {
 
 Nur die, die man sucht. Alle global.
 
-**Helfer** `$`, `qsa`, `esc`, `einmal` (Klicksperre beim Speichern, sperrt über `SPEICHERT` alle Knöpfe), `sperre` (hängt sie nachträglich um einen Knopf), `formOeffnen`/`formSchliessen` (Bearbeiten-Formular aufklappen, hinscrollen, `.formtitel` setzen, aufleuchten), `rechnerZeile` (Knopfzeile unter dem Betragsfeld), `undoToast`, `fmtCHF`, `fmt0`, `fmtDatum`, `isoVon`, `addDays`, `addMonths`, `monatsEnde`, `rechne` (sicherer Ausdrucksparser für das Betragsfeld, kein eval), `calcHint`.
+**Helfer** `$`, `qsa`, `esc`, `einmal` (Klicksperre beim Speichern, sperrt über `SPEICHERT` alle Knöpfe), `sperre` (hängt sie nachträglich um einen Knopf), `formOeffnen`/`formSchliessen` (Bearbeiten-Formular aufklappen, hinscrollen, `.formtitel` setzen, aufleuchten), `rechnerZeile` (Knopfzeile unter dem Betragsfeld; Aktion in `pointerdown`, siehe Android-Falle 5), `undoToast`, `fmtCHF`, `fmt0`, `fmtDatum`, `isoVon`, `addDays`, `addMonths`, `monatsEnde`, `rechne` (sicherer Ausdrucksparser für das Betragsfeld, kein eval), `calcHint`.
 
 **Aggregation und Budget** `eff`, `agg`, `aggInvalidate`, `liveSum`, `ausSplit`, `rollAt`, `budgetMonat`, `budgetJahr`, `istKat`, `jahrTotal`, `bM`, `bJ`, `bVer`, `budgetAktiv`.
 
@@ -100,7 +100,7 @@ Nur die, die man sucht. Alle global.
 
 **Konten und Ziele** (`phase34.js`) `planSplit`, `ampel`, `kontoWert`, `kontoEinstand`, `kontoGV`, `kontoPrognose`, `kontoVerlauf`, `svgVerlauf`, `renderKonten`, `kontoDetail`, `renderZiele`, `zielStand`, `vermoegenHeute`, `vermoegenPrognose`.
 
-**Serien** `ueberNetto`, `renderUeberNetto`, `serieTermin`, `serieTermine`, `naechsterTermin`, `faellige`, `buchungAusSerie`, `verbuchen`, `autoVerbuchen`, `geplanteSerien`, `serieAnpassen`, `renderAbos`.
+**Serien** `ueberNetto`, `renderUeberNetto` (liefert die Zahl der Konten mit Nettüberträgen für die Kopfzeile der Klappe), `serieTermin`, `serieTermine`, `naechsterTermin`, `faellige`, `buchungAusSerie`, `verbuchen`, `autoVerbuchen`, `geplanteSerien`, `serieAnpassen`, `renderAbos`.
 
 **Plan und Muster** (`phase5.js`) `planLohn`, `planRechnung`, `renderPlan`, `muster`, `schonAbgedeckt`, `rhythmusWort`, `renderMuster`, `musterUebernehmen`.
 
@@ -135,6 +135,8 @@ Diese vier haben je einen halben Tag gekostet. Nicht erneut hineinlaufen.
 3. **Freigabe verfällt.** Android verwirft die Dateifreigabe bei jedem App-Neustart. Nicht lösbar, Entscheidung des Browsers. Milderung: Banner `#connBanner` direkt unter dem Kopf mit einem Knopf «Verbinden», der `#btnReconnect` auslöst. Sichtbar, wenn `pendingHandle` gesetzt ist oder `writeState === 'fail'`.
 4. **Service Worker.** Version nicht erhöht heisst alte App, und der Fehler sieht aus wie ein Codefehler. `sw.js` holt alles mit `cache: 'no-store'` und fällt nur offline auf den Cache zurück. Fehlerantworten (404) werden seit 1.1.1 weder gecacht noch ausgeliefert, solange eine gute Fassung im Cache liegt.
 
+5. **`preventDefault()` auf `touchstart` frisst den `click`.** Wer den Fokus eines Eingabefeldes halten will, während daneben ein Knopf gedrückt wird, muss die Vorgabe unterdrücken — aber nicht in `touchstart`: der Browser lässt dann die ganze Folgekette aus, `click` eingeschlossen. Der Knopf reagiert mit der Maus und am Finger nicht. So ausgeliefert in 1.2.0 (Rechnerzeile). Richtig ist `pointerdown`: deckt Maus, Finger und Stift ab, feuert vor dem Fokuswechsel, und `preventDefault()` dort behält den Fokus, ohne den Knopf stumm zu schalten. Die Aktion gehört dann in `pointerdown` selbst, nicht in `click`. Gilt für jede künftige Knopfzeile neben einem Feld.
+
 **Bestätigt** am 06.11.2026 auf einem echten Android-Gerät: 1.0.1 schreibt ohne Fehlermeldung.
 
 ## Tests
@@ -150,13 +152,16 @@ NODE_PATH=<dort>/node_modules node -r ./tests/pw-jsdom.js tests/t21-historie.js 
 
 Steht ein Container mit echtem Playwright und den Dateien zur Verfügung, laufen dieselben Tests dort unverändert — dann ohne `-r`. Die echte Datei wird immer nur gelesen.
 
+**Zwei Klassen von Tests, seit 1.2.1 getrennt.** Was nur Logik ist, läuft gegen die echte Datei über den jsdom-Ersatz (t18, t21, t23, t24). Was am Finger hängt, braucht einen **echten** Browser mit Touch-Emulation und läuft nur dort (t25): jsdom kennt keine Touch-Vorgaben und hat den Fehler aus 1.2.0 anstandslos durchgelassen. `t25` braucht nur `build/index.html` — die enthält nach Regel 8 keine persönlichen Daten und darf darum in den Cloud-Container (`device_stage_files`). Jeder neue Oberflächentest wird gegen die fehlerhafte Fassung gegengeprüft; schlägt er dort nicht fehl, prüft er nichts.
+
 | Test | Prüft | Aufruf |
 |---|---|---|
 | `t18-schreibpruefung.js` | Schreibprüfung über `meta.rev`, Abschneiden, Banner (simulierte Handles) | `node t18… <index.html>` |
 | `t21-historie.js` | Buchungsjahre unabhängig von der Historie, Jahre ohne Buchungen aus ihr, Vermögensverlauf, leere Fächer ohne Historie | `node t21… <index.html> <finanzdaten.json>` |
 | `t22-sw-fehlerseite.js` | Service Worker legt keine 404 über die gute Fassung | `node t22… <sw.js>` |
 | `t23-neue-person.js` | Erststart ohne Datei: Startkategorien ohne Budget, keine persönlichen Namen, alle sechs Bildschirme | `node t23… <index.html>` |
-| `t24-bedienung.js` | 1.2.0: Rechnerzeile, `formOeffnen`, Nettoüberträge, Klicksperre (drei Tipps → eine Buchung), kompaktes JSON, Rückgängig | `node t24… <index.html> <finanzdaten.json>` |
+| `t24-bedienung.js` | `formOeffnen`, Nettoüberträge, Klicksperre (drei Tipps → eine Buchung), kompaktes JSON, Rückgängig | `node t24… <index.html> <finanzdaten.json>` |
+| `t25-touch.js` | **echter Browser**: Rechnerzeile am Finger, Fokus bleibt im Feld, beide Klappen auf «Wiederk.» | `node t25… <index.html>` |
 
 Erwartungswerte gehören nie in den Test, sondern werden aus der Datei gerechnet (Regel 8). Die Reihe t9–t17 ist verloren (sie lief gegen die private Datei); Ersatz ist Roadmap I1. Kurzfassung in `tests/LIESMICH.md`. Layout geprüft auf 360, 390, 430 und 820 px Breite.
 

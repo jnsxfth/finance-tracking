@@ -506,9 +506,13 @@ dialog::backdrop{background:rgba(8,10,12,.55);}
       <div class="l"><div class="small">Fixkosten pro Monat</div><div class="big neg" id="fixMonat">–</div></div>
       <div class="num"><div class="small">pro Jahr</div><div class="mid" id="fixJahr">–</div></div>
     </div>
-    <div class="kv"><span>Wiederkehrende Einnahmen</span><span class="pos num" id="fixEin">–</span></div>
-    <div id="fixUebBox"></div>
-    <p class="small">Überträge auf eigene Konten sind keine Kosten. Gezeigt wird je Konto, was pro Monat netto hineinfliesst – Zuflüsse minus Rückbuchungen.</p>
+    <details class="fold inline" id="fixDetails" style="margin:12px 0 0">
+      <summary>Wiederkehrend im Detail<span class="sum" id="fixSum"></span></summary>
+      <div class="kv"><span>Wiederkehrende Ausgaben</span><span class="num" id="fixAus">–</span></div>
+      <div class="kv"><span>Wiederkehrende Einnahmen</span><span class="pos num" id="fixEin">–</span></div>
+      <div id="fixUebBox"></div>
+      <p class="small">Überträge auf eigene Konten sind keine Kosten. Gezeigt wird je Konto, was pro Monat netto hineinfliesst – Zuflüsse minus Rückbuchungen. Die wiederkehrenden Ausgaben sind dieselbe Zahl wie die Fixkosten oben, hier nur der Vollständigkeit wegen.</p>
+    </details>
   </div>
   <div class="card">
     <h2 id="serFormTitle" class="formtitel">Dauerauftrag / Abo anlegen</h2>
@@ -544,11 +548,11 @@ dialog::backdrop{background:rgba(8,10,12,.55);}
     <div class="check"><input type="checkbox" id="serAuto" checked><label for="serAuto" style="margin:0">Automatisch verbuchen, sobald fällig</label></div>
     <div class="btnrow"><button class="primary" id="btnSaveSerie">Speichern</button><button id="btnCancelSerie" class="hidden">Abbrechen</button></div>
   </div>
-  <div class="card">
-    <h2>Erkannte Muster</h2>
+  <details class="card fold" id="musterCard">
+    <summary>Erkannte Muster<span class="sum" id="musterSum"></span></summary>
     <p class="small" id="musterInfo"></p>
     <div id="musterListe"></div>
-  </div>
+  </details>
   <div class="card">
     <h2>Alle Daueraufträge</h2>
     <div id="serList"></div>

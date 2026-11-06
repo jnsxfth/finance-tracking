@@ -506,9 +506,13 @@ dialog::backdrop{background:rgba(8,10,12,.55);}
       <div class="l"><div class="small">Fixkosten pro Monat</div><div class="big neg" id="fixMonat">–</div></div>
       <div class="num"><div class="small">pro Jahr</div><div class="mid" id="fixJahr">–</div></div>
     </div>
-    <div class="kv"><span>Wiederkehrende Einnahmen</span><span class="pos num" id="fixEin">–</span></div>
-    <div id="fixUebBox"></div>
-    <p class="small">Überträge auf eigene Konten sind keine Kosten. Gezeigt wird je Konto, was pro Monat netto hineinfliesst – Zuflüsse minus Rückbuchungen.</p>
+    <details class="fold inline" id="fixDetails" style="margin:12px 0 0">
+      <summary>Wiederkehrend im Detail<span class="sum" id="fixSum"></span></summary>
+      <div class="kv"><span>Wiederkehrende Ausgaben</span><span class="num" id="fixAus">–</span></div>
+      <div class="kv"><span>Wiederkehrende Einnahmen</span><span class="pos num" id="fixEin">–</span></div>
+      <div id="fixUebBox"></div>
+      <p class="small">Überträge auf eigene Konten sind keine Kosten. Gezeigt wird je Konto, was pro Monat netto hineinfliesst – Zuflüsse minus Rückbuchungen. Die wiederkehrenden Ausgaben sind dieselbe Zahl wie die Fixkosten oben, hier nur der Vollständigkeit wegen.</p>
+    </details>
   </div>
   <div class="card">
     <h2 id="serFormTitle" class="formtitel">Dauerauftrag / Abo anlegen</h2>
@@ -544,11 +548,11 @@ dialog::backdrop{background:rgba(8,10,12,.55);}
     <div class="check"><input type="checkbox" id="serAuto" checked><label for="serAuto" style="margin:0">Automatisch verbuchen, sobald fällig</label></div>
     <div class="btnrow"><button class="primary" id="btnSaveSerie">Speichern</button><button id="btnCancelSerie" class="hidden">Abbrechen</button></div>
   </div>
-  <div class="card">
-    <h2>Erkannte Muster</h2>
+  <details class="card fold" id="musterCard">
+    <summary>Erkannte Muster<span class="sum" id="musterSum"></span></summary>
     <p class="small" id="musterInfo"></p>
     <div id="musterListe"></div>
-  </div>
+  </details>
   <div class="card">
     <h2>Alle Daueraufträge</h2>
     <div id="serList"></div>
@@ -1128,7 +1132,7 @@ async function tryAutoConnect(){
 }
 
 /* ============================= Helfer ============================= */
-const APP_VERSION='1.2.0 · 06.11.2026';
+const APP_VERSION='1.2.1 · 06.11.2026';
 let SWREG=null;
 const $ = id => document.getElementById(id);
 const qsa = s => [...document.querySelectorAll(s)];
@@ -1323,17 +1327,20 @@ function calcHint(inputId, hintId){
 }
 // A1: Android zeigt bei inputmode="decimal" nur Ziffern, Punkt und Minus; + * / ( ) sind
 // nicht eintippbar, rechne() damit auf dem Handy unerreichbar. Die Zeile fuegt die Zeichen
-// an der Cursorposition ein. mousedown/touchstart werden abgefangen, sonst verliert das
-// Feld den Fokus und die Tastatur klappt zu.
+// an der Cursorposition ein.
+// Der Fokus muss im Feld bleiben, sonst klappt die Tastatur zu. Darum wird die Vorgabe des
+// Knopfdrucks unterdrueckt -- und zwar in `pointerdown`, nicht in `touchstart`: ein
+// preventDefault() auf touchstart nimmt dem Browser auch den darauffolgenden `click`, der
+// Knopf tat auf dem Handy also gar nichts (Fehler in 1.2.0). pointerdown deckt Maus,
+// Finger und Stift ab und feuert vor dem Fokuswechsel, darum liegt die Aktion dort.
 function rechnerZeile(inputId){
   const el=$(inputId); if(!el||el._rz) return; el._rz=true;
   const bar=document.createElement('div'); bar.className='calcbar';
   [['+','+'],['−','-'],['×','*'],['÷','/'],['(','('],[')',')'],['⌫','']].forEach(([label,wert])=>{
     const b=document.createElement('button');
     b.type='button'; b.textContent=label; b.tabIndex=-1;
-    b.addEventListener('mousedown',e=>e.preventDefault());
-    b.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});
-    b.addEventListener('click',()=>{
+    const tippe=e=>{
+      e.preventDefault();
       const a=el.selectionStart==null?el.value.length:el.selectionStart;
       const z=el.selectionEnd==null?a:el.selectionEnd;
       if(wert===''){
@@ -1342,7 +1349,9 @@ function rechnerZeile(inputId){
       } else el.setRangeText(wert,a,z,'end');
       el.dispatchEvent(new Event('input',{bubbles:true}));
       el.focus();
-    });
+    };
+    if(window.PointerEvent) b.addEventListener('pointerdown',tippe);
+    else { b.addEventListener('touchstart',tippe,{passive:false}); b.addEventListener('mousedown',tippe); }
     bar.appendChild(b);
   });
   el.parentNode.insertBefore(bar,el.nextSibling);
@@ -2294,14 +2303,21 @@ function renderUeberNetto(aktiv){
     Object.keys(r.toepfe).filter(n=>Math.abs(r.toepfe[n])>=0.005).map(n=>
       '<div class="kv small"><span>davon Topf '+esc(n)+'</span><span class="num">'+vz(r.toepfe[n])+'</span></div>').join('')
   ).join('') : '<div class="kv"><span>Regelmässige Überträge</span><span class="num">–</span></div>';
+  return rows.length;
 }
 function renderAbos(){
   const aktiv=state.serien.filter(s=>s.aktiv!==false);
   const mt=f=>aktiv.filter(f).reduce((s,x)=>s+serieMonatsBetrag(x),0);
   const mAus=mt(s=>s.typ==='Ausgabe'), mEin=mt(s=>s.typ==='Einnahme');
   $('fixMonat').textContent=fmtCHF(mAus); $('fixJahr').textContent=fmtCHF(mAus*12);
-  $('fixEin').textContent=mEin?fmtCHF(mEin)+' / Mt':'–';
-  renderUeberNetto(aktiv);
+  $('fixAus').textContent=mAus?fmtCHF(mAus)+' / Mt':'–';
+  $('fixEin').textContent=mEin?'+'+fmtCHF(mEin)+' / Mt':'–';
+  const ueb=renderUeberNetto(aktiv);
+  // Zusammenfassung in der Klappe: was man sieht, ohne sie zu oeffnen.
+  const teile=[];
+  if(mEin) teile.push('Einnahmen +'+fmt0(mEin));
+  if(ueb) teile.push('Überträge auf '+ueb+(ueb===1?' Konto':' Konten'));
+  $('fixSum').textContent=teile.length?' · '+teile.join(' · '):'';
   $('serList').innerHTML=state.serien.map(s=>{
     const k=katById(s.kategorieId), next=naechsterTermin(s);
     const neg=+s.betrag<0;
@@ -3848,6 +3864,7 @@ function rhythmusWort(tage) {
 function renderMuster() {
   const alle = muster();
   const bald = alle.filter(m => m.naechst <= addDays(TODAY, 120)).slice(0, 10);
+  $('musterSum').textContent = alle.length ? ' · ' + alle.length + (alle.length === 1 ? ' Posten' : ' Posten') : ' · keine';
   $('musterInfo').textContent = alle.length
     ? alle.length + ' laufende Posten ohne Dauerauftrag erkannt. Hier die nächsten ' + bald.length + '.'
     : 'Keine regelmässigen Posten gefunden, für die noch kein Dauerauftrag besteht. Erkannt wird ab drei gleichartigen Buchungen mit gleichmässigem Abstand.';

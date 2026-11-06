@@ -1,4 +1,4 @@
-# Funktionsumfang, Grenzen, offene Punkte (Stand 1.2.0, 06.11.2026)
+# Funktionsumfang, Grenzen, offene Punkte (Stand 1.2.1, 06.11.2026)
 
 ## Was die App kann
 
@@ -10,7 +10,7 @@
 
 **Konten und Töpfe.** Bankkonten und Anlagekonten (Wert von Hand erfassen, Gewinn und Verlust wird gerechnet). Töpfe reservieren Geld innerhalb eines Kontos, etwa Notgroschen oder Steuern, ohne eigenes Bankkonto. Zwölf-Monats-Verlauf je Konto, Karten eingeklappt.
 
-**Daueraufträge** mit automatischem oder bestätigtem Verbuchen, einzelne Termine anpassen oder überspringen. Überträge erscheinen je Konto netto pro Monat (Zufluss minus Rückbuchung), Topf-Daueraufträge als Unterzeile.
+**Daueraufträge** mit automatischem oder bestätigtem Verbuchen, einzelne Termine anpassen oder überspringen. Überträge erscheinen je Konto netto pro Monat (Zufluss minus Rückbuchung), Topf-Daueraufträge als Unterzeile. Auf «Wiederk.» steht oben die Fixkostenzahl, alles Weitere in Klappen: «Wiederkehrend im Detail» und «Erkannte Muster».
 
 **Rückerstattungen und Gegenbuchungen.** Eine Rückerstattung senkt nur die Ausgaben ihrer eigenen Kategorie. Eine Gegenbuchung holt Geld aus einer Kategorie zurück, wenn zwischen eigenen Konten umgeschichtet wird: 100 aufs Depot und 80 vom Sparkonto zurück sind netto 20 gespart.
 
@@ -33,7 +33,8 @@ Kursabfragen (verworfen, weil jede Quelle entweder Geld kostet oder unzuverläss
 - Archivo braucht beim ersten Öffnen Netz. Danach liegt sie im Browser-Cache.
 - Eine Rückerstattung ohne passende Ausgabe im selben Monat schreibt keinem Budget etwas gut und wird separat ausgewiesen.
 - Rückgängig gilt nur für die zuletzt gelöschte Buchung und nur zehn Sekunden lang; danach hilft nur eine Sicherung.
-- Speichern dauert auf dem Handy weiterhin spürbar lange. Gemessen und beschleunigt wird in 1.2.1 (A4 Punkt 3 bis 5).
+- Speichern dauert auf dem Handy weiterhin spürbar lange. Gemessen und beschleunigt wird in 1.2.2 (A4 Punkt 3 bis 5).
+- «Fixkosten pro Monat» zählt alle wiederkehrenden Ausgaben, nicht nur die mit Art-Rolle `fix`. Darum ist «Wiederkehrende Ausgaben» in der Klappe dieselbe Zahl.
 - Die Dateifreigabe verfällt auf Android bei jedem App-Start. Nicht lösbar, siehe `01 Architektur.md`.
 
 ## Was ich noch selbst in der App tun muss
@@ -59,4 +60,4 @@ v14 bis 1.0.0 war die Roadmap in fünf Phasen: Arten und Töpfe und Geldfluss, f
 
 1.0.1 hat ausschliesslich die Android-Schreibprüfung korrigiert, siehe `01 Architektur.md`, Abschnitt Android-Fallen.
 
-Ab 1.1.0 siehe `CHANGELOG.md`. 1.2.0 war der Bedienungs-Build: Rechnerzeile, sichtbares Bearbeiten, Nettoüberträge, Klicksperre, Rückgängig.
+Ab 1.1.0 siehe `CHANGELOG.md`. 1.2.0 war der Bedienungs-Build: Rechnerzeile, sichtbares Bearbeiten, Nettoüberträge, Klicksperre, Rückgängig. 1.2.1 hat die Rechnerzeile am Finger reparieren müssen und «Wiederk.» auf Klappen umgestellt.

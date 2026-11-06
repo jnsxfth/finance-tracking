@@ -1,5 +1,7 @@
-// t24: Build 1.2.0 «Bedienung». Prüft A1 Rechnerzeile, A2 formOeffnen, A3 Überträge
-// netto, A4 Klicksperre und kompaktes JSON, G2 Rückgängig nach Löschen.
+// t24: Logik aus 1.2.0/1.2.1 gegen die echte Datei: A2 formOeffnen, A3 Überträge netto,
+// A4 Klicksperre und kompaktes JSON, G2 Rückgängig nach Löschen.
+// A1 (Rechnerzeile) und die Klappen stehen in t25 und brauchen einen echten Browser:
+// jsdom lässt den Fehler aus 1.2.0 durch, weil es keine Touch-Vorgaben kennt.
 // Läuft gegen die echte Datei; alle Beträge im Test sind erfunden, Namen werden nie
 // ausgegeben (Regel 8).
 // Aufruf: node t24-bedienung.js <index.html> <finanzdaten.json>
@@ -17,30 +19,6 @@ const chk = (n, ok, info) => { console.log((ok ? 'OK    ' : 'FEHL  ') + n + (inf
   await page.addInitScript(j => localStorage.setItem('finanzapp_data', j), fs.readFileSync(datei, 'utf-8'));
   await page.goto('file://' + html);
   await page.waitForTimeout(700);
-
-  // --- A1: Rechnerzeile ---
-  const a1 = await page.evaluate(() => {
-    const el = $('txBetrag'), bar = el.nextElementSibling;
-    const knopf = l => [...bar.querySelectorAll('button')].find(b => b.textContent === l);
-    const tippe = l => knopf(l).dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    const o = { da: !!bar && bar.classList.contains('calcbar'), n: bar ? bar.querySelectorAll('button').length : 0 };
-    el.focus(); o.sichtbarBeiFokus = bar.classList.contains('an');
-    const md = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
-    knopf('+').dispatchEvent(md); o.fokusBleibt = md.defaultPrevented;
-    el.value = '30'; el.setSelectionRange(2, 2); tippe('+');
-    el.value += '10'; el.setSelectionRange(el.value.length, el.value.length); tippe('×');
-    el.value += '2'; el.dispatchEvent(new Event('input', { bubbles: true }));
-    o.ausdruck = el.value; o.ergebnis = rechne(el.value); o.hinweis = $('txCalc').textContent;
-    tippe('⌫'); o.nachLoeschen = el.value;
-    el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true }));
-    return o;
-  });
-  chk('Rechnerzeile liegt unter dem Betragsfeld', a1.da && a1.n === 7, a1.n + ' Knöpfe');
-  chk('nur sichtbar bei Fokus', a1.sichtbarBeiFokus);
-  chk('Tipp nimmt dem Feld den Fokus nicht', a1.fokusBleibt);
-  chk('30+10*2 ist ohne Tastatur eintippbar', a1.ausdruck === '30+10*2' && a1.ergebnis === 50, a1.ausdruck + ' → ' + a1.ergebnis);
-  chk('Ergebnis steht im Hinweis', /50/.test(a1.hinweis), a1.hinweis);
-  chk('Rückschritt löscht ein Zeichen', a1.nachLoeschen === '30+10*', a1.nachLoeschen);
 
   // --- A2: Bearbeiten öffnet sichtbar ---
   const a2 = await page.evaluate(() => {

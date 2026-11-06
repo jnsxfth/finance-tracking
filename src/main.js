@@ -1,5 +1,5 @@
 /* ============================= Helfer ============================= */
-const APP_VERSION='1.2.0 · 06.11.2026';
+const APP_VERSION='1.2.1 · 06.11.2026';
 let SWREG=null;
 const $ = id => document.getElementById(id);
 const qsa = s => [...document.querySelectorAll(s)];
@@ -194,17 +194,20 @@ function calcHint(inputId, hintId){
 }
 // A1: Android zeigt bei inputmode="decimal" nur Ziffern, Punkt und Minus; + * / ( ) sind
 // nicht eintippbar, rechne() damit auf dem Handy unerreichbar. Die Zeile fuegt die Zeichen
-// an der Cursorposition ein. mousedown/touchstart werden abgefangen, sonst verliert das
-// Feld den Fokus und die Tastatur klappt zu.
+// an der Cursorposition ein.
+// Der Fokus muss im Feld bleiben, sonst klappt die Tastatur zu. Darum wird die Vorgabe des
+// Knopfdrucks unterdrueckt -- und zwar in `pointerdown`, nicht in `touchstart`: ein
+// preventDefault() auf touchstart nimmt dem Browser auch den darauffolgenden `click`, der
+// Knopf tat auf dem Handy also gar nichts (Fehler in 1.2.0). pointerdown deckt Maus,
+// Finger und Stift ab und feuert vor dem Fokuswechsel, darum liegt die Aktion dort.
 function rechnerZeile(inputId){
   const el=$(inputId); if(!el||el._rz) return; el._rz=true;
   const bar=document.createElement('div'); bar.className='calcbar';
   [['+','+'],['−','-'],['×','*'],['÷','/'],['(','('],[')',')'],['⌫','']].forEach(([label,wert])=>{
     const b=document.createElement('button');
     b.type='button'; b.textContent=label; b.tabIndex=-1;
-    b.addEventListener('mousedown',e=>e.preventDefault());
-    b.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});
-    b.addEventListener('click',()=>{
+    const tippe=e=>{
+      e.preventDefault();
       const a=el.selectionStart==null?el.value.length:el.selectionStart;
       const z=el.selectionEnd==null?a:el.selectionEnd;
       if(wert===''){
@@ -213,7 +216,9 @@ function rechnerZeile(inputId){
       } else el.setRangeText(wert,a,z,'end');
       el.dispatchEvent(new Event('input',{bubbles:true}));
       el.focus();
-    });
+    };
+    if(window.PointerEvent) b.addEventListener('pointerdown',tippe);
+    else { b.addEventListener('touchstart',tippe,{passive:false}); b.addEventListener('mousedown',tippe); }
     bar.appendChild(b);
   });
   el.parentNode.insertBefore(bar,el.nextSibling);
@@ -1165,14 +1170,21 @@ function renderUeberNetto(aktiv){
     Object.keys(r.toepfe).filter(n=>Math.abs(r.toepfe[n])>=0.005).map(n=>
       '<div class="kv small"><span>davon Topf '+esc(n)+'</span><span class="num">'+vz(r.toepfe[n])+'</span></div>').join('')
   ).join('') : '<div class="kv"><span>Regelmässige Überträge</span><span class="num">–</span></div>';
+  return rows.length;
 }
 function renderAbos(){
   const aktiv=state.serien.filter(s=>s.aktiv!==false);
   const mt=f=>aktiv.filter(f).reduce((s,x)=>s+serieMonatsBetrag(x),0);
   const mAus=mt(s=>s.typ==='Ausgabe'), mEin=mt(s=>s.typ==='Einnahme');
   $('fixMonat').textContent=fmtCHF(mAus); $('fixJahr').textContent=fmtCHF(mAus*12);
-  $('fixEin').textContent=mEin?fmtCHF(mEin)+' / Mt':'–';
-  renderUeberNetto(aktiv);
+  $('fixAus').textContent=mAus?fmtCHF(mAus)+' / Mt':'–';
+  $('fixEin').textContent=mEin?'+'+fmtCHF(mEin)+' / Mt':'–';
+  const ueb=renderUeberNetto(aktiv);
+  // Zusammenfassung in der Klappe: was man sieht, ohne sie zu oeffnen.
+  const teile=[];
+  if(mEin) teile.push('Einnahmen +'+fmt0(mEin));
+  if(ueb) teile.push('Überträge auf '+ueb+(ueb===1?' Konto':' Konten'));
+  $('fixSum').textContent=teile.length?' · '+teile.join(' · '):'';
   $('serList').innerHTML=state.serien.map(s=>{
     const k=katById(s.kategorieId), next=naechsterTermin(s);
     const neg=+s.betrag<0;
